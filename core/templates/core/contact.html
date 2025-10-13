@@ -13,14 +13,30 @@
 <!-- Contact Section -->
 <section class="section">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; max-width: 1200px; margin: 0 auto;">
-        
+
         <!-- Formulaire -->
         <div style="background: var(--blanc); padding: 2.5rem; border-radius: 15px; box-shadow: var(--ombre);">
             <h2 style="color: var(--rose-dark); margin-bottom: 1.5rem;"><i class="fas fa-paper-plane"></i> Envoyez-nous un Message</h2>
             
+            <!-- ✅ AJOUTE CE BLOC POUR AFFICHER LES MESSAGES DJANGO -->
+            {% if messages %}
+            <div style="margin-bottom: 2rem;">
+                {% for message in messages %}
+                <div style="padding: 1rem; border-radius: 8px; margin-bottom: 1rem; 
+                        {% if message.tags == 'success' %}background: #E8F5E8; color: #2E7D32; border-left: 4px solid #4CAF50;{% endif %}
+                        {% if message.tags == 'error' %}background: #FFEBEE; color: #C62828; border-left: 4px solid #F44336;{% endif %}">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}" 
+                    style="margin-right: 0.5rem;"></i>
+                    {{ message|safe }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
             <form method="post" style="display: flex; flex-direction: column; gap: 1.5rem;">
                 {% csrf_token %}
-                
+                <!-- ... le reste de ton formulaire ... -->
+                 
                 <div>
                     <label for="nom" style="display: block; margin-bottom: 0.5rem; color: var(--gris-fonce); font-weight: 500;">
                         Nom complet <span style="color: var(--rose-primary);">*</span>
@@ -306,6 +322,7 @@
     }
 </style>
 
+
 <script>
     // Animation smooth pour les ancres
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -321,25 +338,28 @@
         });
     });
     
-    // Validation du formulaire
+    // ✅ CORRIGÉ : Animation sans bloquer l'envoi Django
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function(e) {
-            e.preventDefault();
+            // ✅ NE PAS utiliser e.preventDefault() - Laisse Django gérer l'envoi
             
-            // Simulation d'envoi
+            // Juste l'animation du bouton pendant l'envoi
             const button = this.querySelector('button[type="submit"]');
             const originalText = button.innerHTML;
             button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
             button.disabled = true;
             
+            // Le formulaire s'envoie normalement à Django
+            // Django va rediriger et afficher les messages
+            
+            // Réactiver le bouton après 5 secondes au cas où
             setTimeout(() => {
-                alert('✅ Message envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.');
-                form.reset();
                 button.innerHTML = originalText;
                 button.disabled = false;
-            }, 1500);
+            }, 5000);
         });
     }
 </script>
+
 {% endblock %}
