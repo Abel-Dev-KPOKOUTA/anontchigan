@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .models import ContactMessage
 import logging
-
+from django.utils import timezone
 # Configuration du logger
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ def contact(request):
                     sujet=sujet,
                     message=message_text
                 )
-                
+
                 
                 # ✅ Tentative d'envoi d'email (optionnel - pour développement)
                 try:
@@ -94,14 +94,14 @@ def contact(request):
                     {message_text}
                     
                     ---
-                    Message envoyé le : {contact_message.date_envoi.strftime('%d/%m/%Y à %H:%M')}
+                    Message envoyé le : {timezone.localtime(contact_message.date_envoi).strftime('%d/%m/%Y à %H:%M')}
                     """
                     
                     send_mail(
                         sujet_admin,
                         message_admin,
-                        settings.DEFAULT_FROM_EMAIL,
-                        ['contact.anontchigan@gmail.com'],
+                        settings.DEFAULT_FROM_EMAIL, 
+                        ['kpokoutaabel@gmail.com'], # destinataire
                         fail_silently=True,  # Ne pas planter si l'email échoue
                     )
                     
@@ -114,7 +114,7 @@ def contact(request):
                     
                     Résumé de votre demande :
                     - Sujet : {contact_message.get_sujet_display()}
-                    - Date : {contact_message.date_envoi.strftime('%d/%m/%Y à %H:%M')}
+                    - Date : {timezone.localtime(contact_message.date_envoi).strftime('%d/%m/%Y à %H:%M')}
                     - Référence : #{contact_message.id}
                     
                     Nous traitons votre demande dans les meilleurs délais et vous répondrons dans un délai de 24 à 48 heures.
