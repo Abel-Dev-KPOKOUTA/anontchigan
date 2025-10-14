@@ -101,7 +101,7 @@ def contact(request):
                         sujet_admin,
                         message_admin,
                         settings.DEFAULT_FROM_EMAIL, 
-                        ['kpokoutaabel@gmail.com'], # destinataire
+                        ['kpokoutaabel@gmail.com','anontchigan@gmail.com','judikardo@gmail.com'], # destinataire
                         fail_silently=True,  # Ne pas planter si l'email échoue
                     )
                     

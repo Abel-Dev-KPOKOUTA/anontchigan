@@ -36,7 +36,7 @@
             <form method="post" style="display: flex; flex-direction: column; gap: 1.5rem;">
                 {% csrf_token %}
                 <!-- ... le reste de ton formulaire ... -->
-                 
+
                 <div>
                     <label for="nom" style="display: block; margin-bottom: 0.5rem; color: var(--gris-fonce); font-weight: 500;">
                         Nom complet <span style="color: var(--rose-primary);">*</span>
@@ -303,7 +303,7 @@
             Obtenez des informations fiables instantanément.
         </p>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="#" class="btn btn-primary" style="font-size: 1.1rem;">
+            <a href="{% url 'chatbot:chat' %}" class="btn btn-primary" style="font-size: 1.1rem;">
                 <i class="fas fa-robot"></i> Parler au Chatbot
             </a>
             <a href="{% url 'accueil' %}" class="btn btn-secondary" style="font-size: 1.1rem;">

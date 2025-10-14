@@ -350,7 +350,7 @@
             <ul class="nav-menu" id="navMenu">
                 <li><a href="{% url 'accueil' %}" class="{% if request.resolver_match.url_name == 'accueil' %}active{% endif %}">Accueil</a></li>
                 <li><a href="{% url 'a_propos' %}" class="{% if request.resolver_match.url_name == 'a_propos' %}active{% endif %}">À Propos</a></li>
-                <li><a href="#" class="{% if request.resolver_match.url_name == 'chatbot' %}active{% endif %}">Chatbot</a></li>
+                <li><a href="{% url 'chatbot:chat' %}" class="{% if 'chatbot' in request.path %}active{% endif %}">Chatbot</a></li>
                 <li><a href="#" class="{% if request.resolver_match.url_name == 'prediction' %}active{% endif %}">Prédiction</a></li>
                 <li><a href="{% url 'contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
                
@@ -381,7 +381,7 @@
                 <ul>
                     <li><a href="{% url 'accueil' %}">Accueil</a></li>
                     <li><a href="{% url 'a_propos' %}">À Propos</a></li>
-                    <li><a href="#">Chatbot IA</a></li>
+                    <li><a href="{% url 'chatbot:chat' %}">Chatbot IA</a></li>
                     <li><a href="#">Prédiction</a></li>
                     <li><a href="{% url 'politique' %}">Politique de confidentialité</a></li>
                 </ul>

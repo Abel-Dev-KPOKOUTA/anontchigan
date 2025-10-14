@@ -23,7 +23,7 @@
             <div class="card-icon"><i class="fas fa-robot"></i></div>
             <h3>Chatbot IA</h3>
             <p>Posez vos questions sur la prévention, les symptômes et l'auto-examen. Notre assistant intelligent vous répond 24/7 avec des informations fiables et validées.</p>
-            <a href="#" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Discuter maintenant</a>
+            <a href="{% url 'chatbot:chat' %}" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Discuter maintenant</a>
         </div>
         
         <div class="card">
@@ -155,7 +155,7 @@
         <h2 style="font-size: 2rem; margin-bottom: 1rem;">Prêt à Prendre Votre Santé en Main ?</h2>
         <p style="font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.95;">Utilisez notre chatbot IA ou notre outil de prédiction pour obtenir des informations personnalisées</p>
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="#" class="btn" style="background: var(--blanc); color: var(--rose-primary);">
+            <a href="{% url 'chatbot:chat' %}" class="btn" style="background: var(--blanc); color: var(--rose-primary);">
                 <i class="fas fa-robot"></i> Chatbot IA
             </a>
             <a href="#" class="btn" style="background: rgba(255,255,255,0.2); color: var(--blanc); border: 2px solid var(--blanc);">
