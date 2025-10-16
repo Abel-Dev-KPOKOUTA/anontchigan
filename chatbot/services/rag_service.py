@@ -436,7 +436,7 @@ class AdvancedRAGService:
         user_q_lower = user_question.lower().strip()
         
         # 1. SALUTATIONS
-        salutations = ["bonjour", "salut", "coucou", "hello", "akwe", "yo", "bonsoir", "hi"]
+        salutations = ["cc","bonjour", "salut", "coucou", "hello", "akwe", "yo", "bonsoir", "hi"]
         if any(salut == user_q_lower for salut in salutations):
             responses = [
                 "Bonjour ! 😊 Je suis ANONTCHIGAN, votre assistante pour la sensibilisation au cancer du sein. Comment puis-je vous aider ?",
