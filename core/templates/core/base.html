@@ -351,7 +351,7 @@
                 <li><a href="{% url 'accueil' %}" class="{% if request.resolver_match.url_name == 'accueil' %}active{% endif %}">Accueil</a></li>
                 <li><a href="{% url 'a_propos' %}" class="{% if request.resolver_match.url_name == 'a_propos' %}active{% endif %}">À Propos</a></li>
                 <li><a href="{% url 'chatbot:chat' %}" class="{% if 'chatbot' in request.path %}active{% endif %}">Chatbot</a></li>
-                <li><a href="#" class="{% if request.resolver_match.url_name == 'prediction' %}active{% endif %}">Prédiction</a></li>
+                <li><a href="{% url 'predictor:predict' %}" class="{% if 'predictor' in request.path %}active{% endif %}">Prédiction</a></li>
                 <li><a href="{% url 'contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
                
             </ul>
@@ -382,14 +382,14 @@
                     <li><a href="{% url 'accueil' %}">Accueil</a></li>
                     <li><a href="{% url 'a_propos' %}">À Propos</a></li>
                     <li><a href="{% url 'chatbot:chat' %}">Chatbot IA</a></li>
-                    <li><a href="#">Prédiction</a></li>
+                    <li><a href="{% url 'predictor:predict' %}">Prédiction</a></li>
                     <li><a href="{% url 'politique' %}">Politique de confidentialité</a></li>
                 </ul>
             </div>
             <div class="footer-section">
                 <h3>Contact</h3>
                 <ul>
-                    <li><i class="fas fa-envelope"></i> contact.anontchigan@gmail.com</li>
+                    <li><i class="fas fa-envelope"></i> anontchigan@gmail.com</li>
                     <li><i class="fas fa-map-marker-alt"></i> ENSGMM, Abomey, Bénin</li>
                     <li><i class="fas fa-graduation-cap"></i> Club IA</li>
                 </ul>

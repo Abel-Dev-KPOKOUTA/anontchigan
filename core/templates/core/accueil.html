@@ -30,7 +30,7 @@
             <div class="card-icon"><i class="fas fa-brain"></i></div>
             <h3>Prédiction IA</h3>
             <p>Obtenez une estimation du risque grâce à notre modèle d'intelligence artificielle. Analyse de données médicales et d'images pour un pré-diagnostic.</p>
-            <a href="#" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Faire une prédiction</a>
+            <a href="{% url 'predictor:predict' %}" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Faire une prédiction</a>
         </div>
         
         <div class="card">
@@ -158,7 +158,7 @@
             <a href="{% url 'chatbot:chat' %}" class="btn" style="background: var(--blanc); color: var(--rose-primary);">
                 <i class="fas fa-robot"></i> Chatbot IA
             </a>
-            <a href="#" class="btn" style="background: rgba(255,255,255,0.2); color: var(--blanc); border: 2px solid var(--blanc);">
+            <a href="{% url 'predictor:predict' %}" class="btn" style="background: rgba(255,255,255,0.2); color: var(--blanc); border: 2px solid var(--blanc);">
                 <i class="fas fa-brain"></i> Prédiction IA
             </a>
         </div>

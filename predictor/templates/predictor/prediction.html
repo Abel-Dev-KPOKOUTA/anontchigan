@@ -1,0 +1,936 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Prédiction IA - ANONTCHIGAN{% endblock %}
+
+{% block content %}
+<style>
+    .prediction-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .prediction-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .prediction-header h1 {
+        color: var(--rose-dark);
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .prediction-header p {
+        color: var(--gris-fonce);
+        font-size: 1.1rem;
+    }
+
+    .warning-box {
+        background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        border-left: 5px solid #F57C00;
+        margin-bottom: 2rem;
+    }
+
+    .warning-box i {
+        color: #F57C00;
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+    }
+
+    .prediction-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #E0E0E0;
+    }
+
+    .tab-button {
+        padding: 1rem 2rem;
+        background: none;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--gris-fonce);
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .tab-button:hover {
+        color: var(--rose-primary);
+    }
+
+    .tab-button.active {
+        color: var(--rose-primary);
+    }
+
+    .tab-button.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(135deg, var(--rose-primary), var(--violet));
+        border-radius: 3px 3px 0 0;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .upload-area {
+        background: var(--blanc);
+        border: 3px dashed #E0E0E0;
+        border-radius: 20px;
+        padding: 3rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-bottom: 2rem;
+    }
+
+    .upload-area:hover {
+        border-color: var(--rose-primary);
+        background: var(--rose-light);
+    }
+
+    .upload-area.dragover {
+        border-color: var(--rose-primary);
+        background: var(--rose-light);
+        transform: scale(1.02);
+    }
+
+    .upload-icon {
+        font-size: 4rem;
+        color: var(--rose-primary);
+        margin-bottom: 1rem;
+    }
+
+    .upload-text {
+        font-size: 1.1rem;
+        color: var(--gris-fonce);
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-subtext {
+        font-size: 0.9rem;
+        color: #999;
+    }
+
+    .image-preview {
+        display: none;
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .image-preview img {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: var(--gris-fonce);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-group label i {
+        color: var(--rose-primary);
+    }
+
+    .info-icon {
+        color: var(--violet);
+        cursor: help;
+        font-size: 0.9rem;
+        margin-left: 0.3rem;
+    }
+
+    .tooltip {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, var(--violet), var(--rose-primary));
+        color: var(--blanc);
+        padding: 0.8rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        margin-top: 0.5rem;
+    }
+
+    .tooltip::before {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: 20px;
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 6px solid var(--violet);
+    }
+
+    .tooltip.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 0.8rem 1rem;
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--rose-primary);
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+    }
+
+    .submit-button {
+        background: linear-gradient(135deg, var(--rose-primary), var(--violet));
+        color: var(--blanc);
+        border: none;
+        padding: 1.2rem 3rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    }
+
+    .submit-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(233, 30, 99, 0.4);
+    }
+
+    .submit-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .result-box {
+        display: none;
+        background: var(--blanc);
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        margin-top: 2rem;
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #E0E0E0;
+    }
+
+    .result-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+
+    .result-icon.benign {
+        background: linear-gradient(135deg, #4CAF50, #8BC34A);
+        color: var(--blanc);
+    }
+
+    .result-icon.malignant {
+        background: linear-gradient(135deg, #F44336, #E91E63);
+        color: var(--blanc);
+    }
+
+    .result-title {
+        flex: 1;
+    }
+
+    .result-title h3 {
+        font-size: 1.8rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .result-title.benign h3 {
+        color: #4CAF50;
+    }
+
+    .result-title.malignant h3 {
+        color: #F44336;
+    }
+
+    .probability-bar {
+        margin: 1.5rem 0;
+    }
+
+    .probability-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .probability-track {
+        height: 20px;
+        background: #E0E0E0;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .probability-fill {
+        height: 100%;
+        transition: width 1s ease-out;
+        border-radius: 10px;
+    }
+
+    .probability-fill.benign {
+        background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    }
+
+    .probability-fill.malignant {
+        background: linear-gradient(90deg, #F44336, #E91E63);
+    }
+
+    .recommendations {
+        background: var(--rose-light);
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-top: 1.5rem;
+    }
+
+    .recommendations h4 {
+        color: var(--rose-dark);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .recommendations ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .recommendations li {
+        padding: 0.5rem 0;
+        display: flex;
+        align-items: start;
+        gap: 0.5rem;
+    }
+
+    .recommendations li i {
+        color: var(--rose-primary);
+        margin-top: 0.2rem;
+    }
+
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .loading-spinner.active {
+        display: block;
+    }
+
+    .spinner {
+        border: 4px solid var(--rose-light);
+        border-top: 4px solid var(--rose-primary);
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+        .prediction-header h1 {
+            font-size: 2rem;
+        }
+
+        .prediction-tabs {
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .tab-button {
+            text-align: left;
+            padding: 1rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .upload-area {
+            padding: 2rem 1rem;
+        }
+    }
+</style>
+
+<div class="prediction-container">
+    <!-- Header -->
+    <div class="prediction-header">
+        <h1><i class="fas fa-brain"></i> Prédiction par Intelligence Artificielle</h1>
+        <p>Analyse de données médicales pour une estimation du risque</p>
+    </div>
+
+    <!-- Warning Box -->
+    <div class="warning-box">
+        <p style="margin: 0; line-height: 1.7; display: flex; align-items: start; gap: 0.5rem;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>
+                <strong>⚠️ Avertissement Important :</strong> Cette analyse est produite par intelligence artificielle 
+                et a une finalité <strong>éducative uniquement</strong>. Elle ne remplace en aucun cas un diagnostic médical. 
+                Consultez toujours un professionnel de santé qualifié pour toute préoccupation médicale.
+            </span>
+        </p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="prediction-tabs">
+        <button class="tab-button active" onclick="switchTab('image')">
+            <i class="fas fa-image"></i> Analyse d'Image
+        </button>
+        <button class="tab-button" onclick="switchTab('data')">
+            <i class="fas fa-table"></i> Analyse de Données
+        </button>
+    </div>
+
+    <!-- Tab Content: Image -->
+    <div id="imageTab" class="tab-content active">
+        <div style="background: var(--blanc); padding: 2rem; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h3 style="color: var(--rose-dark); margin-bottom: 1rem;">
+                <i class="fas fa-upload"></i> Upload d'Image Radiographique
+            </h3>
+            <p style="color: var(--gris-fonce); margin-bottom: 2rem;">
+                Téléchargez une mammographie ou une échographie pour analyse par notre modèle d'IA.
+            </p>
+
+            <form id="imageForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('imageInput').click()">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p class="upload-text">Cliquez pour télécharger ou glissez-déposez</p>
+                    <p class="upload-subtext">Formats acceptés: JPG, PNG, DICOM (Max 10MB)</p>
+                </div>
+
+                <div class="image-preview" id="imagePreview">
+                    <img id="previewImg" src="" alt="Aperçu">
+                    <button type="button" onclick="removeImage()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #F44336; color: white; border: none; border-radius: 10px; cursor: pointer;">
+                        <i class="fas fa-times"></i> Supprimer
+                    </button>
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button type="submit" class="submit-button" id="imageSubmitBtn" disabled>
+                        <i class="fas fa-brain"></i> Analyser l'Image
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tab Content: Data -->
+    <div id="dataTab" class="tab-content">
+        <div style="background: var(--blanc); padding: 2rem; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h3 style="color: var(--rose-dark); margin-bottom: 1rem;">
+                <i class="fas fa-clipboard-list"></i> Formulaire de Données Cliniques
+            </h3>
+            <p style="color: var(--gris-fonce); margin-bottom: 2rem;">
+                Remplissez les informations suivantes pour une analyse basée sur les caractéristiques cliniques.
+            </p>
+
+            <form id="dataForm">
+                {% csrf_token %}
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-user"></i> Âge
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="age" min="18" max="120" placeholder="Ex: 45" required 
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Âge du patient en années. Le risque de cancer du sein augmente avec l'âge, particulièrement après 50 ans.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-circle"></i> Rayon (Radius)
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="radius" step="0.1" min="0" placeholder="Ex: 14.5" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Moyenne des distances du centre vers les points du périmètre de la masse. Mesure la taille moyenne de la tumeur.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-shapes"></i> Texture
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="texture" step="0.1" min="0" placeholder="Ex: 19.3" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Écart-type des valeurs de niveaux de gris. Mesure la variation de texture de la masse (lisse vs rugueuse).
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-ruler-combined"></i> Périmètre
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="perimeter" step="0.1" min="0" placeholder="Ex: 91.5" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Périmètre de la masse tumorale en unités (généralement mm ou pixels selon l'imagerie).
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-expand-arrows-alt"></i> Aire (Area)
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="area" step="1" min="0" placeholder="Ex: 654" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Surface de la masse tumorale. Plus l'aire est grande, plus la masse est volumineuse.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-wave-square"></i> Lissage (Smoothness)
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="smoothness" step="0.001" min="0" max="1" placeholder="Ex: 0.096" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Variation locale des longueurs de rayon. Valeur entre 0 et 1. Un contour lisse a une faible valeur, un contour irrégulier a une valeur élevée.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-compress"></i> Compacité
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="compactness" step="0.001" min="0" max="1" placeholder="Ex: 0.104" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Formule : périmètre² / aire - 1.0. Mesure la forme : une forme circulaire a une faible compacité, une forme irrégulière a une forte compacité.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-curve"></i> Concavité
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="concavity" step="0.001" min="0" max="1" placeholder="Ex: 0.088" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Sévérité des portions concaves du contour. Indique si la masse a des creux/indentations. Valeur plus élevée = contour plus irrégulier.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-dot-circle"></i> Points Concaves
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="concave_points" step="0.001" min="0" max="1" placeholder="Ex: 0.048" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Nombre de portions concaves du contour. Compte les dépressions/irrégularités sur le bord de la masse.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-adjust"></i> Symétrie
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="symmetry" step="0.001" min="0" max="1" placeholder="Ex: 0.181" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            Mesure de la symétrie de la masse. Une masse parfaitement symétrique a une valeur proche de 0, une masse asymétrique a une valeur plus élevée.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-project-diagram"></i> Dimension Fractale
+                            <i class="fas fa-info-circle info-icon"></i>
+                        </label>
+                        <input type="number" name="fractal_dimension" step="0.001" min="0" max="1" placeholder="Ex: 0.062" required
+                               onfocus="showTooltip(this)" onblur="hideTooltip(this)" oninput="hideTooltip(this)">
+                        <div class="tooltip">
+                            "Approximation côtière" - 1. Mesure la complexité du contour. Plus la valeur est élevée, plus le contour est complexe et irrégulier.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem;">
+                    <button type="submit" class="submit-button">
+                        <i class="fas fa-calculator"></i> Calculer le Risque
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <p style="color: var(--rose-primary); font-weight: 600;">Analyse en cours...</p>
+        <p style="color: var(--gris-fonce); font-size: 0.9rem;">Cela peut prendre quelques secondes</p>
+    </div>
+
+    <!-- Result Box -->
+    <div class="result-box" id="resultBox">
+        <!-- Le résultat sera inséré ici dynamiquement -->
+    </div>
+</div>
+
+<script>
+    let uploadedFile = null;
+
+    // Switch entre les tabs
+    function switchTab(tab) {
+        // Buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        event.target.closest('.tab-button').classList.add('active');
+
+        // Content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        if (tab === 'image') {
+            document.getElementById('imageTab').classList.add('active');
+        } else {
+            document.getElementById('dataTab').classList.add('active');
+        }
+
+        // Reset results
+        document.getElementById('resultBox').style.display = 'none';
+    }
+
+    // Drag and drop
+    const uploadArea = document.getElementById('uploadArea');
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            handleImageFile(file);
+        }
+    });
+
+    // Handle image upload
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            handleImageFile(file);
+        }
+    }
+
+    function handleImageFile(file) {
+        uploadedFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+            document.getElementById('imageSubmitBtn').disabled = false;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImage() {
+        uploadedFile = null;
+        document.getElementById('imageInput').value = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('imageSubmitBtn').disabled = true;
+    }
+
+
+
+    // Submit image form
+    document.getElementById('imageForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!uploadedFile) return;
+
+        const formData = new FormData();
+        formData.append('image', uploadedFile);
+
+        showLoading();
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await fetch('/predictor/image/', {  // URL CORRIGÉE
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+
+            const data = await response.json();
+            hideLoading();
+            displayResult(data);
+        } catch (error) {
+            hideLoading();
+            console.error('Erreur image:', error);
+            alert('Erreur lors de l\'analyse. Veuillez réessayer.');
+        }
+    });
+
+    // Submit data form
+    document.getElementById('dataForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+
+        showLoading();
+
+        try {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await fetch('/predictor/data/', {  // URL CORRIGÉE
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Erreur HTTP: ${response.status}`);
+            }
+
+            const result = await response.json();
+            hideLoading();
+            displayResult(result);
+        } catch (error) {
+            hideLoading();
+            console.error('Erreur données:', error);
+            alert('Erreur lors du calcul: ' + error.message);
+        }
+    });
+
+
+    // Display result - VERSION CORRIGÉE
+    function displayResult(data) {
+        const resultBox = document.getElementById('resultBox');
+        
+        // CORRECTION : Utiliser directement le label du modèle
+        const isBenign = data.label === 'Bénin' || data.label === 'Benign' || data.label === 'Bénigne';
+        
+        // CORRECTION : Utiliser la probabilité directement depuis l'API
+        // Si le modèle dit "Bénin" avec prob_malign=0.086, alors probabilité bénin = 91.3%
+        const probability = isBenign ? 
+            Math.round((1 - data.prob_malign) * 100) :  // Probabilité bénin
+            Math.round(data.prob_malign * 100);         // Probabilité malin
+        
+        console.log("📊 Données reçues:", data); // Debug
+        console.log("🏷️ Label:", data.label, "isBenign:", isBenign);
+        console.log("📈 Probabilité malin:", data.prob_malign, "Probabilité affichée:", probability + "%");
+
+        resultBox.innerHTML = `
+            <div class="result-header">
+                <div class="result-icon ${isBenign ? 'benign' : 'malignant'}">
+                    <i class="fas ${isBenign ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                </div>
+                <div class="result-title ${isBenign ? 'benign' : 'malignant'}">
+                    <h3>${isBenign ? 'Résultat : Bénin' : 'Résultat : Suspect'}</h3>
+                    <p style="margin: 0; color: var(--gris-fonce);">Analyse complétée avec succès</p>
+                </div>
+            </div>
+
+            <div class="probability-bar">
+                <div class="probability-label">
+                    <span>Probabilité ${isBenign ? 'bénin' : 'malin'}</span>
+                    <span><strong>${probability}%</strong></span>
+                </div>
+                <div class="probability-track">
+                    <div class="probability-fill ${isBenign ? 'benign' : 'malignant'}" style="width: ${probability}%"></div>
+                </div>
+            </div>
+
+            <div class="recommendations">
+                <h4><i class="fas fa-stethoscope"></i> Recommandations</h4>
+                <ul>
+                    ${isBenign ? `
+                        <li><i class="fas fa-check-circle"></i> Le résultat suggère une anomalie bénigne</li>
+                        <li><i class="fas fa-calendar-check"></i> Continuez vos examens de dépistage réguliers</li>
+                        <li><i class="fas fa-user-md"></i> Consultez votre médecin pour confirmation et suivi</li>
+                        <li><i class="fas fa-heart"></i> Maintenez un mode de vie sain</li>
+                    ` : `
+                        <li><i class="fas fa-exclamation-triangle"></i> Le résultat suggère une anomalie suspecte</li>
+                        <li><i class="fas fa-hospital"></i> <strong>Consultez IMMÉDIATEMENT un spécialiste</strong></li>
+                        <li><i class="fas fa-microscope"></i> Des examens complémentaires sont nécessaires</li>
+                        <li><i class="fas fa-clock"></i> Ne retardez pas la consultation médicale</li>
+                    `}
+                </ul>
+            </div>
+
+            <div style="background: #F5F5F5; padding: 1rem; border-radius: 10px; margin-top: 1.5rem; text-align: center;">
+                <p style="margin: 0; font-size: 0.9rem; color: var(--gris-fonce);">
+                    <i class="fas fa-info-circle"></i> <strong>Rappel :</strong> Cette analyse est indicative. 
+                    Seul un professionnel de santé peut établir un diagnostic définitif.
+                </p>
+                ${data.model_used ? `
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #4CAF50;">
+                    <i class="fas fa-robot"></i> Analyse réalisée avec le modèle IA
+                </p>
+                ` : `
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #FF9800;">
+                    <i class="fas fa-calculator"></i> Analyse en mode simulation
+                </p>
+                `}
+            </div>
+        `;
+
+        resultBox.style.display = 'block';
+        resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // Animer la barre de probabilité
+        setTimeout(() => {
+            const fill = resultBox.querySelector('.probability-fill');
+            fill.style.width = '0%';
+            setTimeout(() => {
+                fill.style.width = probability + '%';
+            }, 100);
+        }, 200);
+    }
+
+
+    // Loading functions
+    function showLoading() {
+        document.getElementById('loadingSpinner').classList.add('active');
+        document.getElementById('resultBox').style.display = 'none';
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingSpinner').classList.remove('active');
+    }
+
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Tooltip functions
+    function showTooltip(input) {
+        const tooltip = input.parentElement.querySelector('.tooltip');
+        if (tooltip && !input.value) {
+            tooltip.classList.add('show');
+        }
+    }
+
+    function hideTooltip(input) {
+        const tooltip = input.parentElement.querySelector('.tooltip');
+        if (tooltip) {
+            tooltip.classList.remove('show');
+        }
+    }
+</script>
+{% endblock %}

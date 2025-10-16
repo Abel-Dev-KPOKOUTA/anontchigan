@@ -8,7 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('' , include('core.urls')),
     path('chatbot/' , include('chatbot.urls')),
-    path('', include('predictor.urls')),
+    path('predictor/', include('predictor.urls')),
 ]
 
 

@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json
+import numpy as np
 from .services.rag_service import rag_service
 
 def chatbot_page(request):
@@ -23,25 +24,28 @@ def chatbot_ask(request):
                     'error': 'Question requise'
                 }, status=400)
             
-            # Utiliser le service RAG
-            answer, match_type, score = rag_service.find_best_match(question)
-            
-            if answer:
-                return JsonResponse({
-                    "answer": answer,
-                    "source": match_type,
-                    "score": score,
-                    "timestamp": timezone.localtime(timezone.now()).strftime('%d/%m/%Y à %H:%M'),
-                })
+            # Utiliser le service RAG avancé
+            if hasattr(rag_service, 'find_best_match_advanced'):
+                answer, match_type, score = rag_service.find_best_match_advanced(question)
             else:
-                # Réponse de repli
-                fallback_answer = rag_service.generate_fallback_response(question)
-                return JsonResponse({
-                    "answer": fallback_answer,
-                    "source": "fallback",
-                    "score": score,
-                    "timestamp": timezone.localtime(timezone.now()).strftime('%d/%m/%Y à %H:%M'),
-                })
+                # Fallback vers l'ancienne méthode
+                answer, match_type, score = rag_service.find_best_match(question)
+            
+            # Convertir les types numpy en types Python natifs pour la sérialisation JSON
+            if hasattr(score, 'item'):
+                score = score.item()  # Convertir numpy.float32 en float Python
+            elif isinstance(score, (np.float32, np.float64)):
+                score = float(score)
+            
+            # Préparer la réponse
+            response_data = {
+                "answer": answer,
+                "source": match_type,
+                "score": score,  # Maintenant c'est un float Python normal
+                "timestamp": timezone.localtime(timezone.now()).strftime('%d/%m/%Y à %H:%M'),
+            }
+            
+            return JsonResponse(response_data)
             
         except json.JSONDecodeError:
             return JsonResponse({
