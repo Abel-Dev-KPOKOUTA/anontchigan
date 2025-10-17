@@ -12,7 +12,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'clé-par-défaut-pour-développement-seule
 
 # SECURITY WARNING: don't run with debug turned on in production!
 #DEBUG = os.getenv('DEBUG', 'True') == 'False'
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
