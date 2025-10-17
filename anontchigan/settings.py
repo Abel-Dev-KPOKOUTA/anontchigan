@@ -12,9 +12,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'clé-par-défaut-pour-développement-seulement')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+#DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['abel123.pythonanywhere.com']
 
 # Application definition
 INSTALLED_APPS = [
@@ -24,7 +25,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'core',
     'chatbot',
     'predictor',
@@ -94,14 +94,28 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ----------------------- SECTION SEND EMAIL -------------------#
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.pythonanywhere.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'kpokoutaabel@gmail.com'
+# EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Sécurisé
+# DEFAULT_FROM_EMAIL = 'anontchigan@gmail.com'
+# SERVER_EMAIL = 'anontchigan@gmail.com'
+
+
+
+# SMTP PythonAnywhere
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.pythonanywhere.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'kpokoutaabel@gmail.com'
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Sécurisé
-DEFAULT_FROM_EMAIL = 'anontchigan@gmail.com'
-SERVER_EMAIL = 'anontchigan@gmail.com'
+
+EMAIL_HOST_USER = 'abel123@pythonanywhere.com'  # Ton email PythonAnywhere
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Ton mot de passe PythonAnywhere
+DEFAULT_FROM_EMAIL = 'abel123@pythonanywhere.com'  # Même email
+SERVER_EMAIL = 'abel123@pythonanywhere.com'  # Pour les messages d’erreur serveur
+
 
 # Logging configuration
 LOGGING = {
