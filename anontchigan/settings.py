@@ -14,7 +14,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'clé-par-défaut-pour-développement-seule
 #DEBUG = os.getenv('DEBUG', 'True') == 'False'
 DEBUG = True
 
-ALLOWED_HOSTS = []
+#ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["anontchigan-mks7.onrender.com"]
 
 # Application definition
 INSTALLED_APPS = [
