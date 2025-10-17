@@ -1,7 +1,6 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-
 # Charger les variables d'environnement
 load_dotenv()
 
@@ -12,10 +11,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'clé-par-défaut-pour-développement-seulement')
 
 # SECURITY WARNING: don't run with debug turned on in production!
+<<<<<<< HEAD
 #DEBUG = os.getenv('DEBUG', 'True') == 'True'
 DEBUG = False
 
 ALLOWED_HOSTS = ['abel123.pythonanywhere.com']
+=======
+#DEBUG = os.getenv('DEBUG', 'True') == 'False'
+DEBUG = True
+
+#ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
+>>>>>>> 3447c18d4a46880d7cd256e56e0531069ca15783
 
 # Application definition
 INSTALLED_APPS = [

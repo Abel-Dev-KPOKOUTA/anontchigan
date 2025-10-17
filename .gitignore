@@ -157,4 +157,4 @@ ipython_config.py
 
 # Project specific (ajoutez vos dossiers spécifiques)
 /predictor/models/*.joblib
-/chatbot/data/cache/
+/chatbot/data/cache/db.sqlite3

@@ -25,15 +25,16 @@ def chatbot_ask(request):
                 }, status=400)
             
             # Utiliser le service RAG avancé
-            if hasattr(rag_service, 'find_best_match_advanced'):
+            if rag_service and hasattr(rag_service, 'find_best_match_advanced'):
                 answer, match_type, score = rag_service.find_best_match_advanced(question)
             else:
-                # Fallback vers l'ancienne méthode
-                answer, match_type, score = rag_service.find_best_match(question)
+                return JsonResponse({
+                    'error': 'Service chatbot indisponible'
+                }, status=500)
             
-            # Convertir les types numpy en types Python natifs pour la sérialisation JSON
+            # Convertir les types numpy en types Python natifs
             if hasattr(score, 'item'):
-                score = score.item()  # Convertir numpy.float32 en float Python
+                score = score.item()
             elif isinstance(score, (np.float32, np.float64)):
                 score = float(score)
             
@@ -41,7 +42,7 @@ def chatbot_ask(request):
             response_data = {
                 "answer": answer,
                 "source": match_type,
-                "score": score,  # Maintenant c'est un float Python normal
+                "score": score,
                 "timestamp": timezone.localtime(timezone.now()).strftime('%d/%m/%Y à %H:%M'),
             }
             

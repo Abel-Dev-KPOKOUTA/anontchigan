@@ -1,9 +1,27 @@
 import json
 import os
+import logging
 import random
 import numpy as np
 from difflib import SequenceMatcher
 from django.conf import settings
+from typing import Dict, List  # ← AJOUTEZ CETTE LIGNE
+
+# Configuration du logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger("ANONTCHIGAN")
+
+class Config:
+    """Configuration optimisée pour éviter les coupures"""
+    SIMILARITY_THRESHOLD = 0.75
+    MAX_HISTORY_LENGTH = 8
+    MAX_CONTEXT_LENGTH = 1000
+    MAX_ANSWER_LENGTH = 600
+    FAISS_RESULTS_COUNT = 3
+    MIN_ANSWER_LENGTH = 30
 
 # Essayer d'importer les dépendances avancées
 try:
@@ -21,17 +39,239 @@ try:
 except ImportError:
     GROQ_AVAILABLE = False
 
+class GroqService:
+    
+    def __init__(self):
+        self.client = None
+        self.available = False
+        self._initialize_groq()
+    
+    def _initialize_groq(self):
+        try:
+            from groq import Groq
+            
+            api_key = getattr(settings, 'GROQ_API_KEY', None)
+            if not api_key:
+                logger.warning("Clé API Groq manquante")
+                return
+            
+            self.client = Groq(api_key=api_key)
+            
+            # Test de connexion
+            self.client.chat.completions.create(
+                messages=[{"role": "user", "content": "test"}],
+                model="llama-3.1-8b-instant",
+                max_tokens=5,
+            )
+            self.available = True
+            logger.info("✓ Service Groq initialisé")
+            
+        except Exception as e:
+            logger.warning(f"Service Groq non disponible: {str(e)}")
+    
+    def generate_response(self, question: str, context: str) -> str:
+        """Génère une réponse complète sans coupure (version adaptée)"""
+        if not self.available:
+            raise RuntimeError("Service Groq non disponible")
+        
+        try:
+            # Préparer le contexte optimisé
+            context_short = self._prepare_context(context)
+            
+            # Préparer les messages
+            messages = self._prepare_messages(question, context_short)
+            
+            logger.info("🤖 Génération avec Groq...")
+            
+            # AUGMENTER SIGNIFICATIVEMENT les tokens pour éviter les coupures
+            response = self.client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=messages,
+                max_tokens=600,  # Augmenté pour éviter coupures
+                temperature=0.7,
+                top_p=0.9,
+            )
+            
+            answer = response.choices[0].message.content.strip()
+            answer = self._clean_response(answer)
+            
+            # Validation renforcée
+            if not self._is_valid_answer(answer):
+                raise ValueError("Réponse trop courte")
+                
+            # Vérification et correction des coupures
+            answer = self._ensure_complete_response(answer)
+            
+            logger.info(f"✓ Réponse générée ({len(answer)} caractères)")
+            return answer
+            
+        except Exception as e:
+            logger.error(f"Erreur Groq: {str(e)}")
+            raise
+    
+    def _prepare_context(self, context: str) -> str:
+        """Prépare un contexte concis"""
+        lines = context.split('\n')[:5]
+        context_short = '\n'.join(lines)
+        if len(context_short) > Config.MAX_CONTEXT_LENGTH:
+            context_short = context_short[:Config.MAX_CONTEXT_LENGTH-3] + "..."
+        return context_short
+    
+    def _prepare_messages(self, question: str, context: str) -> List[Dict]:
+        """Prépare les messages avec instructions claires contre les coupures"""
+        
+        system_prompt = f"""Tu es ANONTCHIGAN, assistante IA professionnelle spécialisée dans la sensibilisation au cancer du sein au Bénin.
+
+CONTEXTE À UTILISER :
+{context}
+
+RÈGLES CRITIQUES :
+1. FOURNIR DES RÉPONSES COMPLÈTES - ne JAMAIS couper une phrase en milieu de mot
+2. Si tu donnes un conseil de prévention, aller deux fois à la ligne AVANT de le donner
+3. Tes réponses doivent se terminer naturellement par un point final
+
+STYLE :
+- Professionnel, clair, empathique
+- Réponses directes sans formules introductives
+- CONCIS mais COMPLET
+- Humour humain léger 1 fois sur 3 réponses
+- Emojis à utiliser fréquemment : 💗 🌸 😊 🇧🇯
+
+STRUCTURE DES RÉPONSES :
+1. Réponse principale basée sur le contexte
+2. N'invente PAS d'informations
+3. Si le contexte ne couvre pas la question, recommande de consulter un professionnel de santé au Bénin
+4. ENSGMM se définit comme l'Ecole Nationale Supérieure de Génie Mathématique et Modélisation 
+5. Utilise des connecteurs logiques pour fluidifier et produire des réponses naturelles et cohérentes
+
+INFORMATIONS SUR LES CRÉATEURS (UNIQUEMENT SI DANS LE CONTEXTE) :
+- Judicaël Karol DOBOEVI
+- Hornel Ursus GBAGUIDI  
+- Abel Kocou KPOKOUTA
+- Josaphat ADJELE
+- Club IA de l'ENSGMM (École Nationale Supérieure de Génie Mathématique et Modélisation)
+
+
+INTERDICTIONS STRICTES :
+- N'ajoute PAS d'autres noms de créateurs/collaborateurs
+- N'invente PAS d'institutions partenaires
+
+
+DIRECTIVES ANTI-COUPURE :
+- Vérifie que ta réponse est complète avant de terminer
+- Ne coupe PAS en milieu de phrase ou de mot
+- Utilise "Atassa!" ou "Atassaaaaa!" en debut de phrase en cas d'humour et d'étonnement extrême
+- Termine par un point final approprié
+- Si tu mentionnes des noms (créateurs, etc.), assure-toi qu'ils sont COMPLETS
+
+Conseils de prévention : seulement si pertinents et si demandés."""
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user", 
+                "content": f"QUESTION: {question}\n\nIMPORTANT : Réponds de façon COMPLÈTE sans couper ta réponse. Termine par un point final. Si conseil de prévention, va à la ligne avant."
+            }
+        ]
+        
+        return messages
+    
+    def _clean_response(self, answer: str) -> str:
+        """Nettoie la réponse en gardant la personnalité"""
+        
+        # Supprimer les introductions verbeuses
+        unwanted_intros = [
+            'bonjour', 'salut', 'coucou', 'hello', 'akwè', 'yo', 'bonsoir', 'hi',
+            'excellente question', 'je suis ravi', 'permettez-moi', 'tout d abord',
+            'premièrement', 'pour commencer', 'en tant qu', 'je suis anontchigan'
+        ]
+        
+        answer_lower = answer.lower()
+        for phrase in unwanted_intros:
+            if answer_lower.startswith(phrase):
+                sentences = answer.split('.')
+                if len(sentences) > 1:
+                    answer = '.'.join(sentences[1:]).strip()
+                    if answer:
+                        answer = answer[0].upper() + answer[1:]
+                break
+        
+        return answer.strip()
+    
+    def _is_valid_answer(self, answer: str) -> bool:
+        """Valide que la réponse est acceptable"""
+        return (len(answer) >= Config.MIN_ANSWER_LENGTH and 
+                not answer.lower().startswith(('je ne sais pas', 'désolé', 'sorry')))
+    
+    def _ensure_complete_response(self, answer: str) -> str:
+        """Garantit que la réponse est complète et non coupée"""
+        if not answer:
+            return answer
+            
+        # Détecter les signes de coupure
+        cut_indicators = [
+            answer.endswith('...'),
+            answer.endswith(','),
+            answer.endswith(';'),
+            answer.endswith(' '),
+            any(word in answer.lower() for word in ['http', 'www.', '.com']),
+            '...' in answer[-10:]
+        ]
+        
+        if any(cut_indicators):
+            logger.warning("⚠️  Détection possible de réponse coupée")
+            
+            # Trouver la dernière phrase complète
+            last_period = answer.rfind('.')
+            last_exclamation = answer.rfind('!')
+            last_question = answer.rfind('?')
+            
+            sentence_end = max(last_period, last_exclamation, last_question)
+            
+            if sentence_end > 0 and sentence_end >= len(answer) - 5:
+                # Garder jusqu'à la dernière phrase complète
+                answer = answer[:sentence_end + 1]
+            else:
+                # Si pas de ponctuation claire, nettoyer la fin
+                answer = answer.rstrip(' ,;...')
+                if not answer.endswith(('.', '!', '?')):
+                    answer += '.'
+        
+        # Formater les conseils de prévention avec saut de ligne
+        prevention_phrases = [
+            'conseil de prévention',
+            'pour prévenir',
+            'je recommande',
+            'il est important de',
+            'n oubliez pas de'
+        ]
+        
+        # Vérifier si un conseil de prévention est présent
+        has_prevention_advice = any(phrase in answer.lower() for phrase in prevention_phrases)
+        
+        if has_prevention_advice:
+            # Essayer d'insérer un saut de ligne avant le conseil
+            lines = answer.split('. ')
+            if len(lines) > 1:
+                # Trouver la ligne qui contient le conseil
+                for i, line in enumerate(lines[1:], 1):
+                    if any(phrase in line.lower() for phrase in prevention_phrases):
+                        # Insérer un saut de ligne avant cette ligne
+                        lines[i] = '\n' + lines[i]
+                        answer = '. '.join(lines)
+                        break
+        
+        return answer
+
 class AdvancedRAGService:
     def __init__(self):
         self.questions_data = []
         self.embedding_model = None
         self.faiss_index = None
-        self.groq_client = None
-        self.use_groq = False
+        self.groq_service = GroqService()
         
         self.load_data()
         self.initialize_advanced_features()
-        self.initialize_groq()
     
     def load_data(self):
         """Charge les données depuis le fichier JSON"""
@@ -51,24 +291,24 @@ class AdvancedRAGService:
                 })
                 self.all_texts.append(f"Question: {item['question']}\nRéponse: {item['answer']}")
             
-            print(f"✅ {len(self.questions_data)} questions chargées")
+            logger.info(f"✅ {len(self.questions_data)} questions chargées")
             
         except FileNotFoundError:
-            print("❌ Fichier cancer_sein.json non trouvé")
+            logger.error("❌ Fichier cancer_sein.json non trouvé")
         except Exception as e:
-            print(f"❌ Erreur chargement RAG: {e}")
+            logger.error(f"❌ Erreur chargement RAG: {e}")
     
     def initialize_advanced_features(self):
         """Initialise FAISS et les embeddings si disponibles"""
         if not HAS_ADVANCED_DEPS:
-            print("⚠️ Mode basique - FAISS non disponible")
+            logger.info("⚠️ Mode basique - FAISS non disponible")
             return
         
         try:
-            print("🔍 Initialisation des embeddings...")
+            logger.info("🔍 Initialisation des embeddings...")
             self.embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
             
-            print("📊 Création de l'index FAISS...")
+            logger.info("📊 Création de l'index FAISS...")
             embeddings = self.embedding_model.encode(self.all_texts, show_progress_bar=False)
             embeddings = np.array(embeddings).astype('float32')
             
@@ -76,29 +316,12 @@ class AdvancedRAGService:
             self.faiss_index = faiss.IndexFlatL2(dimension)
             self.faiss_index.add(embeddings)
             
-            print(f"✓ Index FAISS créé ({len(embeddings)} vecteurs, dim={dimension})")
+            logger.info(f"✓ Index FAISS créé ({len(embeddings)} vecteurs, dim={dimension})")
             
         except Exception as e:
-            print(f"❌ Erreur initialisation FAISS: {e}")
+            logger.error(f"❌ Erreur initialisation FAISS: {e}")
             self.embedding_model = None
             self.faiss_index = None
-    
-    def initialize_groq(self):
-        """Initialise la connexion Groq"""
-        if not GROQ_AVAILABLE:
-            print("⚠️ Groq non disponible")
-            return
-        
-        try:
-            groq_api_key = getattr(settings, 'GROQ_API_KEY', None)
-            if groq_api_key:
-                self.groq_client = Groq(api_key=groq_api_key)
-                self.use_groq = True
-                print("✓ Groq configuré (Llama 3.1 8B Instant)")
-            else:
-                print("⚠️ Clé API Groq manquante dans les settings")
-        except Exception as e:
-            print(f"❌ Erreur configuration Groq: {e}")
     
     def similarity_score(self, str1, str2):
         """Calcule la similarité entre deux chaînes"""
@@ -128,7 +351,7 @@ class AdvancedRAGService:
             
             return results
         except Exception as e:
-            print(f"❌ Erreur recherche FAISS: {e}")
+            logger.error(f"❌ Erreur recherche FAISS: {e}")
             return []
     
     def find_by_keywords(self, user_question_lower):
@@ -198,77 +421,22 @@ class AdvancedRAGService:
             return "Merci pour ta question ! 😊 Fais ton auto-examen régulièrement et consulte un médecin. 💗"
     
     def generate_with_groq(self, question: str, context: str) -> str:
-        """Génère une réponse avec Groq"""
-        if not self.use_groq or self.groq_client is None:
+        """Génère une réponse avec Groq (version améliorée anti-coupure)"""
+        if not self.groq_service.available:
             return self.generate_fallback_from_context(context)
         
         try:
-            # Optimiser le contexte
-            context_lines = context.split('\n')[:8]
-            context_short = '\n'.join(context_lines)
-            
-            if len(context_short) > 1000:
-                context_short = context_short[:1000] + "..."
-            
-            messages = [
-                {
-                    "role": "system",
-                    "content": """Tu es ANONTCHIGAN 💗, une assistante IA spécialisée dans la sensibilisation au cancer du sein.
-
-Tu es bienveillante, professionnelle et concise. Utilise UNIQUEMENT les informations du contexte fourni.
-
-RÈGLES:
-- Sois directe et naturelle
-- Utilise un langage clair et accessible
-- Reste dans le domaine médical/santé
-- Encourage la consultation médicale
-- Sois concise (2-4 phrases maximum)"""
-                },
-                {
-                    "role": "user",
-                    "content": f"""CONTEXTE:
-{context_short}
-
-QUESTION: {question}
-
-Réponds de manière directe et utile:"""
-                }
-            ]
-            
-            response = self.groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=messages,
-                max_tokens=150,
-                temperature=0.7,
-            )
-            
-            answer = response.choices[0].message.content.strip()
-            
-            # Nettoyer la réponse
-            unwanted_starts = ["bonjour", "salut", "hello", "coucou"]
-            for phrase in unwanted_starts:
-                if answer.lower().startswith(phrase):
-                    answer = answer[len(phrase):].strip()
-                    if answer and answer[0] in [',', '!', '.', ':']:
-                        answer = answer[1:].strip()
-                    if answer:
-                        answer = answer[0].upper() + answer[1:]
-            
-            if not answer or len(answer) < 10:
-                return self.generate_fallback_from_context(context)
-            
-            return answer
-            
+            return self.groq_service.generate_response(question, context)
         except Exception as e:
-            print(f"❌ Erreur Groq: {e}")
+            logger.error(f"❌ Erreur Groq: {e}")
             return self.generate_fallback_from_context(context)
     
     def find_best_match_advanced(self, user_question):
-        """Nouvelle méthode de recherche avancée"""
+        """Nouvelle méthode de recherche avancée avec anti-coupure"""
         user_q_lower = user_question.lower().strip()
         
         # 1. SALUTATIONS
-        salutations = ["bonjour", "salut", "coucou", "hello", "akwe", "yo", "bonsoir", "hi"]
+        salutations = ["cc","bonjour", "salut", "coucou", "hello", "akwe", "yo", "bonsoir", "hi"]
         if any(salut == user_q_lower for salut in salutations):
             responses = [
                 "Bonjour ! 😊 Je suis ANONTCHIGAN, votre assistante pour la sensibilisation au cancer du sein. Comment puis-je vous aider ?",
@@ -295,19 +463,23 @@ Réponds de manière directe et utile:"""
         similarity = best_result['similarity']
         
         # 4. DÉCISION : JSON vs GÉNÉRATION
-        SIMILARITY_THRESHOLD = 0.65
-        
-        if similarity >= SIMILARITY_THRESHOLD:
+        if similarity >= Config.SIMILARITY_THRESHOLD:
             # HAUTE SIMILARITÉ → Réponse directe du JSON
-            return best_result['answer'], "json_direct", similarity
+            answer = best_result['answer']
+            
+            # S'assurer que les réponses directes ne sont pas coupées
+            if len(answer) > Config.MAX_ANSWER_LENGTH:
+                answer = answer[:Config.MAX_ANSWER_LENGTH-3] + "..."
+            
+            return answer, "json_direct", similarity
         
         else:
             # FAIBLE SIMILARITÉ → Génération avec Groq ou fallback
             context_parts = []
             for i, result in enumerate(faiss_results[:3], 1):
                 answer_truncated = result['answer']
-                if len(answer_truncated) > 250:
-                    answer_truncated = answer_truncated[:247] + "..."
+                if len(answer_truncated) > 200:
+                    answer_truncated = answer_truncated[:197] + "..."
                 context_parts.append(f"{i}. Q: {result['question']}\n   R: {answer_truncated}")
             
             context = "\n\n".join(context_parts)
@@ -358,120 +530,10 @@ Réponds de manière directe et utile:"""
         else:
             return "Je n'ai pas trouvé d'information spécifique sur ce point dans ma base de données. Cependant, je vous encourage vivement à pratiquer l'auto-examen mensuel et à consulter un professionnel de santé pour toute question médicale. Votre santé est précieuse ! 💗"
 
-# Instance globale avec détection automatique des capacités
+# Instance globale
 try:
     rag_service = AdvancedRAGService()
-    print("✅ Service RAG avancé initialisé")
+    logger.info("✅ Service RAG avancé avec anti-coupure initialisé")
 except Exception as e:
-    print(f"❌ Erreur initialisation RAG avancé: {e}")
-    # Fallback vers le service basique
-    from .rag_service_basic import RAGService
-    rag_service = RAGService()
-
-
-
-
-
-
-
-def convert_to_serializable(self, obj):
-    """Convertit les objets non sérialisables en types Python natifs"""
-    if hasattr(obj, 'item'):
-        return obj.item()  # Pour numpy types
-    elif isinstance(obj, (np.float32, np.float64)):
-        return float(obj)
-    elif isinstance(obj, (np.int32, np.int64)):
-        return int(obj)
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
-    elif isinstance(obj, dict):
-        return {k: self.convert_to_serializable(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [self.convert_to_serializable(item) for item in obj]
-    else:
-        return obj
-
-def find_best_match_advanced(self, user_question):
-    """Nouvelle méthode de recherche avancée"""
-    user_q_lower = user_question.lower().strip()
-    
-    # 1. SALUTATIONS
-    salutations = ["bonjour", "salut", "coucou", "hello", "akwe", "yo", "bonsoir", "hi"]
-    if any(salut == user_q_lower for salut in salutations):
-        responses = [
-            "Bonjour ! 😊 Je suis ANONTCHIGAN, votre assistante pour la sensibilisation au cancer du sein. Comment puis-je vous aider ?",
-            "Salut ! 👋 Ravie de vous parler. Vous avez une question sur le cancer du sein ?",
-            "Hello ! 💗 ANONTCHIGAN à votre service. Quelle est votre question ?"
-        ]
-        answer = random.choice(responses)
-        return answer, "salutation", 1.0  # Retourne directement un float Python
-    
-    # 2. RECHERCHE PAR MOTS-CLÉS
-    keyword_answer, keyword_score = self.find_by_keywords(user_q_lower)
-    if keyword_answer and keyword_score >= 0.9:
-        # Convertir le score en float Python
-        keyword_score = float(keyword_score) if hasattr(keyword_score, 'item') else keyword_score
-        return keyword_answer, "keyword_match", keyword_score
-    
-    # 3. RECHERCHE FAISS (si disponible)
-    faiss_results = []
-    if self.faiss_index:
-        faiss_results = self.search_faiss(user_question, k=3)
-    
-    if not faiss_results:
-        # Fallback vers la recherche par similarité basique
-        return self.find_best_match_basic(user_question)
-    
-    best_result = faiss_results[0]
-    similarity = best_result['similarity']
-    
-    # Convertir la similarité en float Python
-    similarity = float(similarity) if hasattr(similarity, 'item') else similarity
-    
-    # 4. DÉCISION : JSON vs GÉNÉRATION
-    SIMILARITY_THRESHOLD = 0.65
-    
-    if similarity >= SIMILARITY_THRESHOLD:
-        # HAUTE SIMILARITÉ → Réponse directe du JSON
-        return best_result['answer'], "json_direct", similarity
-    
-    else:
-        # FAIBLE SIMILARITÉ → Génération avec Groq ou fallback
-        context_parts = []
-        for i, result in enumerate(faiss_results[:3], 1):
-            answer_truncated = result['answer']
-            if len(answer_truncated) > 250:
-                answer_truncated = answer_truncated[:247] + "..."
-            context_parts.append(f"{i}. Q: {result['question']}\n   R: {answer_truncated}")
-        
-        context = "\n\n".join(context_parts)
-        generated_answer = self.generate_with_groq(user_question, context)
-        
-        return generated_answer, "groq_generated", similarity
-
-def find_best_match_basic(self, user_question):
-    """Méthode de fallback basique (sans FAISS)"""
-    user_q_lower = user_question.lower().strip()
-    
-    # Recherche exacte
-    for item in self.questions_data:
-        if user_q_lower == item['question_normalisee']:
-            return item['answer'], "exact", 1.0  # Float Python
-    
-    # Recherche par similarité
-    best_match = None
-    best_score = 0.0  # Déjà un float Python
-    
-    for item in self.questions_data:
-        score = self.similarity_score(user_q_lower, item['question_normalisee'])
-        if score > best_score:
-            best_score = score
-            best_match = item
-    
-    if best_match and best_score >= 0.6:
-        match_type = "exact" if best_score >= 0.9 else "similar"
-        return best_match['answer'], match_type, best_score  # best_score est déjà un float Python
-    
-    # Fallback
-    fallback_answer = self.generate_fallback_response(user_question)
-    return fallback_answer, "fallback", best_score
+    logger.error(f"❌ Erreur initialisation RAG avancé: {e}")
+    rag_service = None
