@@ -1,0 +1,17 @@
+[
+  {
+    "question": "Quels sont les premiers signes du cancer du sein ?",
+    "answer": "Les premiers signes peuvent inclure : une boule ou masse dans le sein, une modification de la taille ou de la forme du sein, un écoulement du mamelon, une rétraction du mamelon, des changements de la peau du sein (rougeur, aspect peau d'orange), ou des douleurs persistantes. Il est important de consulter un médecin si vous observez l'un de ces signes.",
+    "source": "symptomes"
+  },
+  {
+    "question": "Comment reconnaître une boule suspecte dans le sein ?",
+    "answer": "Une boule suspecte est généralement dure, indolore, avec des contours irréguliers, et fixe (ne bouge pas facilement). Cependant, certaines masses cancéreuses peuvent être molles et douloureuses. Toute boule nouvelle ou qui persiste doit être examinée par un médecin.",
+    "source": "symptomes"
+  },
+  {
+    "question": "Quels sont les symptômes du cancer du sein ?",
+    "answer": "Les symptômes du cancer du sein peuvent inclure :\n\n- **Une masse ou grosseur** dans le sein ou l'aisselle\n- **Un changement de taille ou de forme** du sein\n- **Des modifications de la peau** : rougeur, fossettes, aspect \"peau d'orange\"\n- **Un écoulement** du mamelon (surtout s'il est sanglant)\n- **Une rétraction** du mamelon\n- **Des douleurs** persistantes\n\n**Important** : La présence d'un symptôme ne signifie pas nécessairement un cancer. Consultez un médecin pour tout changement inhabituel.",
+    "source": "symptomes"
+  }
+]

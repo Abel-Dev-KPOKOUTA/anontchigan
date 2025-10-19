@@ -1,0 +1,17 @@
+[
+  {
+    "question": "Comment réduire le risque de cancer du sein ?",
+    "answer": "Pour réduire le risque : maintenir un poids santé, pratiquer une activité physique régulière, limiter la consommation d'alcool, éviter le tabac, avoir une alimentation équilibrée riche en fruits et légumes, et pour les mères, l'allaitement peut réduire le risque.",
+    "source": "prevention"
+  },
+  {
+    "question": "À partir de quel âge faut-il faire des mammographies ?",
+    "answer": "Le dépistage organisé du cancer du sein est proposé aux femmes de 50 à 74 ans tous les 2 ans. Pour les femmes avec des facteurs de risque familiaux, un dépistage plus précoce peut être recommandé. Consultez votre médecin pour un suivi personnalisé.",
+    "source": "prevention"
+  },
+  {
+    "question": "Quels sont les facteurs de risque ?",
+    "answer": "**Facteurs de risque du cancer du sein :**\n\n**Non modifiables :**\n- Âge (risque augmente après 50 ans)\n- Antécédents familiaux\n- Mutations génétiques (BRCA1, BRCA2)\n- Règles précoces ou ménopause tardive\n\n**Modifiables :**\n- Surpoids après la ménopause\n- Manque d'activité physique\n- Consommation d'alcool\n- Tabagisme\n- Traitement hormonal prolongé\n\nAvoir un facteur de risque ne signifie pas développer un cancer.",
+    "source": "prevention"
+  }
+]

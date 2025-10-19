@@ -1,0 +1,365 @@
+{% extends 'core/base.html' %}
+{% block title %}Contact - ANONTCHIGAN | Nous Contacter{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1><i class="fas fa-envelope"></i> Contactez-Nous</h1>
+        <p>Une question ? Un besoin d'aide ? Nous sommes là pour vous accompagner</p>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section class="section">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; max-width: 1200px; margin: 0 auto;">
+
+        <!-- Formulaire -->
+        <div style="background: var(--blanc); padding: 2.5rem; border-radius: 15px; box-shadow: var(--ombre);">
+            <h2 style="color: var(--rose-dark); margin-bottom: 1.5rem;"><i class="fas fa-paper-plane"></i> Envoyez-nous un Message</h2>
+            
+            <!-- ✅ AJOUTE CE BLOC POUR AFFICHER LES MESSAGES DJANGO -->
+            {% if messages %}
+            <div style="margin-bottom: 2rem;">
+                {% for message in messages %}
+                <div style="padding: 1rem; border-radius: 8px; margin-bottom: 1rem; 
+                        {% if message.tags == 'success' %}background: #E8F5E8; color: #2E7D32; border-left: 4px solid #4CAF50;{% endif %}
+                        {% if message.tags == 'error' %}background: #FFEBEE; color: #C62828; border-left: 4px solid #F44336;{% endif %}">
+                    <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}" 
+                    style="margin-right: 0.5rem;"></i>
+                    {{ message|safe }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <form method="post" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% csrf_token %}
+                <!-- ... le reste de ton formulaire ... -->
+
+                <div>
+                    <label for="nom" style="display: block; margin-bottom: 0.5rem; color: var(--gris-fonce); font-weight: 500;">
+                        Nom complet <span style="color: var(--rose-primary);">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nom" 
+                        name="nom" 
+                        required
+                        style="width: 100%; padding: 0.8rem; border: 2px solid #E0E0E0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;"
+                        onfocus="this.style.borderColor='var(--rose-primary)'"
+                        onblur="this.style.borderColor='#E0E0E0'"
+                    >
+                </div>
+                
+                <div>
+                    <label for="email" style="display: block; margin-bottom: 0.5rem; color: var(--gris-fonce); font-weight: 500;">
+                        Email <span style="color: var(--rose-primary);">*</span>
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required
+                        style="width: 100%; padding: 0.8rem; border: 2px solid #E0E0E0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;"
+                        onfocus="this.style.borderColor='var(--rose-primary)'"
+                        onblur="this.style.borderColor='#E0E0E0'"
+                    >
+                </div>
+                
+                <div>
+                    <label for="telephone" style="display: block; margin-bottom: 0.5rem; color: var(--gris-fonce); font-weight: 500;">
+                        Téléphone
+                    </label>
+                    <input 
+                        type="tel" 
+                        id="telephone" 
+                        name="telephone"
+                        placeholder="+229 XX XX XX XX"
+                        style="width: 100%; padding: 0.8rem; border: 2px solid #E0E0E0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;"
+                        onfocus="this.style.borderColor='var(--rose-primary)'"
+                        onblur="this.style.borderColor='#E0E0E0'"
+                    >
+                </div>
+                
+                <div>
+                    <label for="sujet" style="display: block; margin-bottom: 0.5rem; color: var(--gris-fonce); font-weight: 500;">
+                        Sujet <span style="color: var(--rose-primary);">*</span>
+                    </label>
+                    <select 
+                        id="sujet" 
+                        name="sujet" 
+                        required
+                        style="width: 100%; padding: 0.8rem; border: 2px solid #E0E0E0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; background: var(--blanc);"
+                        onfocus="this.style.borderColor='var(--rose-primary)'"
+                        onblur="this.style.borderColor='#E0E0E0'"
+                    >
+                        <option value="">Sélectionnez un sujet</option>
+                        <option value="question">Question générale</option>
+                        <option value="support">Support technique</option>
+                        <option value="depistage">Demande de dépistage</option>
+                        <option value="partenariat">Partenariat</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="message" style="display: block; margin-bottom: 0.5rem; color: var(--gris-fonce); font-weight: 500;">
+                        Message <span style="color: var(--rose-primary);">*</span>
+                    </label>
+                    <textarea 
+                        id="message" 
+                        name="message" 
+                        rows="6" 
+                        required
+                        style="width: 100%; padding: 0.8rem; border: 2px solid #E0E0E0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s; resize: vertical; font-family: inherit;"
+                        onfocus="this.style.borderColor='var(--rose-primary)'"
+                        onblur="this.style.borderColor='#E0E0E0'"
+                    ></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem;">
+                    <i class="fas fa-paper-plane"></i> Envoyer le Message
+                </button>
+            </form>
+        </div>
+        
+        <!-- Informations -->
+        <div>
+            <div style="background: linear-gradient(135deg, var(--rose-primary) 0%, var(--violet) 100%); padding: 2.5rem; border-radius: 15px; color: var(--blanc); margin-bottom: 2rem;">
+                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-info-circle"></i> Informations de Contact</h2>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div style="display: flex; align-items: start; gap: 1rem;">
+                        <i class="fas fa-map-marker-alt" style="font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                        <div>
+                            <strong style="display: block; margin-bottom: 0.3rem;">Adresse</strong>
+                            <p style="opacity: 0.95;">ENSGMM - Abomey, Bénin<br>École Nationale Supérieure de Génie Mathématique et Modélisation</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: start; gap: 1rem;">
+                        <i class="fas fa-envelope" style="font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                        <div>
+                            <strong style="display: block; margin-bottom: 0.3rem;">Email</strong>
+                            <p style="opacity: 0.95;">anontchigan@gmail.com</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: start; gap: 1rem;">
+                        <i class="fas fa-users" style="font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                        <div>
+                            <strong style="display: block; margin-bottom: 0.3rem;">Équipe</strong>
+                            <p style="opacity: 0.95; font-size: 0.95rem;">
+                                Judicaël Karol DOBOEVI<br>
+                                Hornel Ursus GBAGUIDI<br>
+                                Abel Kocou KPOKOUTA<br>
+                                Josaphat ADJELE
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: start; gap: 1rem;">
+                        <i class="fas fa-clock" style="font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                        <div>
+                            <strong style="display: block; margin-bottom: 0.3rem;">Disponibilité</strong>
+                            <p style="opacity: 0.95;">Chatbot : Disponible 24/7<br>Réponse email : Sous 24-48h</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Réseaux sociaux -->
+            <div style="background: var(--blanc); padding: 2rem; border-radius: 15px; box-shadow: var(--ombre); margin-bottom: 2rem;">
+                <h3 style="color: var(--rose-dark); margin-bottom: 1rem;"><i class="fas fa-share-alt"></i> Suivez-nous</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="#" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.2rem; background: #1877F2; color: var(--blanc); text-decoration: none; border-radius: 8px; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fab fa-facebook-f"></i> Facebook
+                    </a>
+                    <a href="#" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.2rem; background: #1DA1F2; color: var(--blanc); text-decoration: none; border-radius: 8px; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </a>
+                    <a href="#" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.2rem; background: linear-gradient(45deg, #F58529, #DD2A7B, #8134AF); color: var(--blanc); text-decoration: none; border-radius: 8px; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fab fa-instagram"></i> Instagram
+                    </a>
+                    <a href="#" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.2rem; background: #0A66C2; color: var(--blanc); text-decoration: none; border-radius: 8px; transition: transform 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <i class="fab fa-linkedin-in"></i> LinkedIn
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Urgence -->
+            <div style="background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); padding: 2rem; border-radius: 15px; border-left: 5px solid #F57C00;">
+                <h3 style="color: #E65100; margin-bottom: 1rem;"><i class="fas fa-exclamation-triangle"></i> En Cas d'Urgence</h3>
+                <p style="color: var(--gris-fonce); line-height: 1.7;">
+                    Si vous présentez des symptômes inquiétants ou avez besoin d'une consultation médicale urgente, 
+                    <strong>contactez immédiatement un professionnel de santé</strong> ou rendez-vous au centre de santé le plus proche.
+                </p>
+                <a href="#centres" class="btn btn-secondary" style="margin-top: 1rem; display: inline-block;">
+                    <i class="fas fa-hospital"></i> Centres de Dépistage
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Centres de dépistage -->
+<section class="section" id="centres" style="background: var(--gris-clair); padding: 4rem 2rem; margin: 0; max-width: 100%;">
+    <h2 class="section-title">Centres de Dépistage au Bénin</h2>
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <div class="cards-container">
+            <div class="card">
+                <h3><i class="fas fa-hospital" style="color: var(--rose-primary);"></i> CNHU Cotonou</h3>
+                <p><strong>Centre National Hospitalier Universitaire</strong></p>
+                <p style="margin-top: 0.5rem;">📍 Avenue Clozel, Cotonou</p>
+                <p>📞 +229 21 30 01 45</p>
+                <p style="margin-top: 1rem; padding: 1rem; background: var(--rose-light); border-radius: 8px;">
+                    <strong>Services :</strong> Mammographie, échographie, biopsie
+                </p>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-hospital" style="color: var(--rose-primary);"></i> Centre Médical La Colombe</h3>
+                <p><strong>Clinique Privée</strong></p>
+                <p style="margin-top: 0.5rem;">📍 Haie Vive, Cotonou</p>
+                <p>📞 +229 21 32 45 67</p>
+                <p style="margin-top: 1rem; padding: 1rem; background: var(--rose-light); border-radius: 8px;">
+                    <strong>Services :</strong> Consultation, dépistage, suivi
+                </p>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-hospital" style="color: var(--rose-primary);"></i> Hôpital de Zone Abomey-Calavi</h3>
+                <p><strong>Centre Public</strong></p>
+                <p style="margin-top: 0.5rem;">📍 Abomey-Calavi</p>
+                <p>📞 +229 21 35 78 90</p>
+                <p style="margin-top: 1rem; padding: 1rem; background: var(--rose-light); border-radius: 8px;">
+                    <strong>Services :</strong> Dépistage gratuit certain jours
+                </p>
+            </div>
+            
+            <div class="card">
+                <h3><i class="fas fa-hospital" style="color: var(--rose-primary);"></i> Polyclinique Les Cocotiers</h3>
+                <p><strong>Clinique Privée</strong></p>
+                <p style="margin-top: 0.5rem;">📍 Fidjrossè, Cotonou</p>
+                <p>📞 +229 21 33 12 34</p>
+                <p style="margin-top: 1rem; padding: 1rem; background: var(--rose-light); border-radius: 8px;">
+                    <strong>Services :</strong> Mammographie numérique, conseil
+                </p>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 3rem; padding: 2rem; background: var(--blanc); border-radius: 15px; box-shadow: var(--ombre);">
+            <h3 style="color: var(--rose-dark); margin-bottom: 1rem;"><i class="fas fa-ribbon"></i> Campagne Octobre Rose</h3>
+            <p style="font-size: 1.1rem; line-height: 1.8; color: var(--gris-fonce);">
+                Durant tout le mois d'octobre, plusieurs centres de santé au Bénin proposent des <strong>dépistages gratuits ou à tarif réduit</strong>. 
+                N'hésitez pas à les contacter pour connaître les dates et modalités.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Contact -->
+<section class="section">
+    <h2 class="section-title">Questions Fréquentes</h2>
+    <div style="max-width: 900px; margin: 0 auto;">
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            
+            <div style="background: var(--blanc); padding: 1.5rem; border-radius: 10px; box-shadow: var(--ombre); border-left: 4px solid var(--rose-primary);">
+                <h3 style="color: var(--rose-dark); margin-bottom: 0.5rem;"><i class="fas fa-question-circle"></i> Les services sont-ils gratuits ?</h3>
+                <p style="color: var(--gris-fonce);">Oui, notre chatbot IA et l'outil de prédiction sont totalement gratuits et accessibles à tous. Notre mission est de rendre l'information médicale accessible.</p>
+            </div>
+            
+            <div style="background: var(--blanc); padding: 1.5rem; border-radius: 10px; box-shadow: var(--ombre); border-left: 4px solid var(--rose-primary);">
+                <h3 style="color: var(--rose-dark); margin-bottom: 0.5rem;"><i class="fas fa-question-circle"></i> Mes données sont-elles sécurisées ?</h3>
+                <p style="color: var(--gris-fonce);">Absolument. Nous utilisons un chiffrement de bout en bout et respectons les normes RGPD. Vos données médicales sont anonymisées et ne sont jamais partagées sans votre consentement explicite.</p>
+            </div>
+            
+            <div style="background: var(--blanc); padding: 1.5rem; border-radius: 10px; box-shadow: var(--ombre); border-left: 4px solid var(--rose-primary);">
+                <h3 style="color: var(--rose-dark); margin-bottom: 0.5rem;"><i class="fas fa-question-circle"></i> Le chatbot remplace-t-il un médecin ?</h3>
+                <p style="color: var(--gris-fonce);">Non, notre chatbot est un outil d'information et de sensibilisation. Il ne remplace en aucun cas l'avis d'un professionnel de santé. En cas de symptômes, consultez toujours un médecin.</p>
+            </div>
+            
+            <div style="background: var(--blanc); padding: 1.5rem; border-radius: 10px; box-shadow: var(--ombre); border-left: 4px solid var(--rose-primary);">
+                <h3 style="color: var(--rose-dark); margin-bottom: 0.5rem;"><i class="fas fa-question-circle"></i> Puis-je utiliser le service pour quelqu'un d'autre ?</h3>
+                <p style="color: var(--gris-fonce);">Oui, vous pouvez utiliser notre plateforme pour vous informer ou pour accompagner un proche. Cependant, encouragez toujours la personne concernée à consulter directement un professionnel de santé.</p>
+            </div>
+            
+            <div style="background: var(--blanc); padding: 1.5rem; border-radius: 10px; box-shadow: var(--ombre); border-left: 4px solid var(--rose-primary);">
+                <h3 style="color: var(--rose-dark); margin-bottom: 0.5rem;"><i class="fas fa-question-circle"></i> Comment puis-je contribuer ?</h3>
+                <p style="color: var(--gris-fonce);">Vous pouvez nous aider en partageant notre plateforme, en devenant bénévole, ou en nous contactant pour un partenariat. Ensemble, nous pouvons sauver plus de vies.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section" style="background: linear-gradient(135deg, var(--rose-light) 0%, #E1BEE7 100%); padding: 4rem 2rem; margin: 0; max-width: 100%;">
+    <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+        <i class="fas fa-hands-helping" style="font-size: 4rem; color: var(--rose-primary); margin-bottom: 1.5rem;"></i>
+        <h2 style="color: var(--rose-dark); font-size: 2rem; margin-bottom: 1rem;">Besoin d'Aide Immédiate ?</h2>
+        <p style="font-size: 1.1rem; color: var(--gris-fonce); margin-bottom: 2rem; line-height: 1.8;">
+            Notre chatbot IA est disponible 24h/24 et 7j/7 pour répondre à toutes vos questions sur le cancer du sein. 
+            Obtenez des informations fiables instantanément.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'chatbot:chat' %}" class="btn btn-primary" style="font-size: 1.1rem;">
+                <i class="fas fa-robot"></i> Parler au Chatbot
+            </a>
+            <a href="{% url 'accueil' %}" class="btn btn-secondary" style="font-size: 1.1rem;">
+                <i class="fas fa-home"></i> Retour à l'Accueil
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Responsive -->
+<style>
+    @media (max-width: 968px) {
+        .section > div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+
+
+<script>
+    // Animation smooth pour les ancres
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // ✅ CORRIGÉ : Animation sans bloquer l'envoi Django
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // ✅ NE PAS utiliser e.preventDefault() - Laisse Django gérer l'envoi
+            
+            // Juste l'animation du bouton pendant l'envoi
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+            button.disabled = true;
+            
+            // Le formulaire s'envoie normalement à Django
+            // Django va rediriger et afficher les messages
+            
+            // Réactiver le bouton après 5 secondes au cas où
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 5000);
+        });
+    }
+</script>
+
+{% endblock %}

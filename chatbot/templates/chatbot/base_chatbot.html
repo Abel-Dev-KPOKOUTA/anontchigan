@@ -1,0 +1,461 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ANONTCHIGAN - Prévention Cancer du Sein{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --rose-primary: #E91E63;
+            --rose-light: #FCE4EC;
+            --rose-dark: #C2185B;
+            --violet: #9C27B0;
+            --blanc: #FFFFFF;
+            --gris-clair: #F5F5F5;
+            --gris-fonce: #424242;
+            --ombre: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--gris-fonce);
+            background-color: var(--blanc);
+        }
+
+        /* Navigation */
+        nav {
+            background: linear-gradient(135deg, var(--rose-primary) 0%, var(--violet) 100%);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--ombre);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--blanc);
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .logo i {
+            font-size: 2rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            color: var(--blanc);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-menu a:hover, .nav-menu a.active {
+            background-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--blanc);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--rose-light) 0%, #E1BEE7 100%);
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(233,30,99,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            color: var(--rose-dark);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--gris-fonce);
+            margin-bottom: 2rem;
+        }
+
+        /* Boutons */
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--rose-primary) 0%, var(--violet) 100%);
+            color: var(--blanc);
+            box-shadow: var(--ombre);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-secondary {
+            background: var(--blanc);
+            color: var(--rose-primary);
+            border: 2px solid var(--rose-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--rose-primary);
+            color: var(--blanc);
+        }
+
+        /* Sections */
+        .section {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--rose-dark);
+            margin-bottom: 3rem;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--rose-primary), var(--violet));
+            border-radius: 2px;
+        }
+
+        /* Cards */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--blanc);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: var(--ombre);
+            transition: all 0.3s ease;
+            border-top: 4px solid var(--rose-primary);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            color: var(--rose-primary);
+            margin-bottom: 1rem;
+        }
+
+        .card h3 {
+            color: var(--rose-dark);
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--gris-fonce) 0%, #616161 100%);
+            color: var(--blanc);
+            padding: 3rem 2rem 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: var(--rose-light);
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: var(--blanc);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--rose-light);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: linear-gradient(135deg, var(--rose-primary) 0%, var(--violet) 100%);
+                flex-direction: column;
+                padding: 1rem;
+                gap: 0;
+                display: none;
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .nav-menu a {
+                padding: 1rem;
+                width: 100%;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+    /* DANS VOTRE base.html, REMPLACEZ LA SECTION @media (max-width: 768px) COMPLÈTEMENT PAR CECI : */
+
+    @media (max-width: 768px) {
+        .nav-container {
+            position: relative; /* AJOUTER CECI */
+        }
+
+        .nav-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--rose-primary) 0%, var(--violet) 100%);
+            flex-direction: column;
+            padding: 0.5rem 0; /* MODIFIÉ : 1rem → 0.5rem 0 */
+            gap: 0; /* GARDER 0 */
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 999; /* AJOUTER CECI */
+        }
+
+        .nav-menu.active {
+            display: flex;
+        }
+
+        .nav-menu a {
+            padding: 0.8rem 1.5rem; /* MODIFIÉ : 1rem → 0.8rem 1.5rem */
+            width: 100%;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            display: block; /* AJOUTER CECI */
+            text-align: left; /* AJOUTER CECI */
+        }
+
+        .nav-menu a:active {
+            background-color: rgba(255,255,255,0.3);
+        }
+
+        .nav-menu li {
+            margin: 0; /* AJOUTER CECI */
+            padding: 0; /* AJOUTER CECI */
+        }
+
+        .menu-toggle {
+            display: block;
+            -webkit-tap-highlight-color: transparent;
+            padding: 0.5rem; /* AJOUTER CECI pour une meilleure zone de clic */
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+        }
+
+        .hero p {
+            font-size: 1rem;
+        }
+
+        .cards-container {
+            grid-template-columns: 1fr;
+        }
+    }
+    </style>
+
+    
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="{% url 'accueil' %}" class="logo">
+                <i class="fas fa-ribbon"></i>
+                <span>ANONTCHIGAN</span>
+            </a>
+            <button class="menu-toggle" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="{% url 'accueil' %}" class="{% if request.resolver_match.url_name == 'accueil' %}active{% endif %}">Accueil</a></li>
+                <li><a href="{% url 'a_propos' %}" class="{% if request.resolver_match.url_name == 'a_propos' %}active{% endif %}">À Propos</a></li>
+                <li><a href="{% url 'chatbot:chat' %}" class="{% if 'chatbot' in request.path %}active{% endif %}">Chatbot</a></li>
+                <li><a href="{% url 'predictor:predict' %}" class="{% if 'predictor' in request.path %}active{% endif %}">Prédiction</a></li>
+                <li><a href="{% url 'contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a></li>
+               
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenu -->
+    {% block content %}{% endblock %}
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('navMenu');
+            menu.classList.toggle('active');
+        }
+
+        // Fermer le menu mobile lors du clic sur un lien
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    document.getElementById('navMenu').classList.remove('active');
+                }
+            });
+        });
+
+        // Animation au scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card, .section').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

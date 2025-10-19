@@ -1,0 +1,167 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Accueil - ANONTCHIGAN | Prévention Cancer du Sein{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1><i class="fas fa-ribbon"></i> Octobre Rose 2025</h1>
+        <p>Ensemble contre le cancer du sein. Informez-vous, prévenez, agissez.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+            <a href="#services" class="btn btn-primary">Découvrir nos services</a>
+            <a href="{% url 'a_propos' %}" class="btn btn-secondary">En savoir plus</a>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="section" id="services">
+    <h2 class="section-title">Nos Services Intelligents</h2>
+    <div class="cards-container">
+        <div class="card">
+            <div class="card-icon"><i class="fas fa-robot"></i></div>
+            <h3>Chatbot IA</h3>
+            <p>Posez vos questions sur la prévention, les symptômes et l'auto-examen. Notre assistant intelligent vous répond 24/7 avec des informations fiables et validées.</p>
+            <a href="{% url 'chatbot:chat' %}" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Discuter maintenant</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon"><i class="fas fa-brain"></i></div>
+            <h3>Prédiction IA</h3>
+            <p>Obtenez une estimation du risque grâce à notre modèle d'intelligence artificielle. Analyse de données médicales et d'images pour un pré-diagnostic.</p>
+            <a href="{% url 'predictor:predict' %}" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Faire une prédiction</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-icon"><i class="fas fa-book-medical"></i></div>
+            <h3>Ressources Éducatives</h3>
+            <p>Accédez à une bibliothèque complète d'informations sur le cancer du sein : guides, vidéos, témoignages et conseils pratiques.</p>
+            <a href="#ressources" class="btn btn-secondary" style="margin-top: 1rem; display: inline-block;">Voir les ressources</a>
+        </div>
+    </div>
+</section>
+
+<!-- Statistiques Section -->
+<section class="section" style="background: linear-gradient(135deg, var(--rose-light) 0%, #E1BEE7 100%); padding: 3rem 2rem; margin: 0; max-width: 100%;">
+    <h2 class="section-title">Cancer du Sein en Chiffres</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; text-align: center;">
+        <div>
+            <div style="font-size: 3rem; color: var(--rose-dark); font-weight: bold;">1/8</div>
+            <p style="color: var(--gris-fonce); margin-top: 0.5rem;">Femmes touchées dans leur vie</p>
+        </div>
+        <div>
+            <div style="font-size: 3rem; color: var(--rose-dark); font-weight: bold;">90%</div>
+            <p style="color: var(--gris-fonce); margin-top: 0.5rem;">Taux de guérison si détecté tôt</p>
+        </div>
+        <div>
+            <div style="font-size: 3rem; color: var(--rose-dark); font-weight: bold;">50+</div>
+            <p style="color: var(--gris-fonce); margin-top: 0.5rem;">Âge de risque accru</p>
+        </div>
+        <div>
+            <div style="font-size: 3rem; color: var(--rose-dark); font-weight: bold;">100%</div>
+            <p style="color: var(--gris-fonce); margin-top: 0.5rem;">Préventif avec dépistage régulier</p>
+        </div>
+    </div>
+</section>
+
+<!-- Auto-examen Section -->
+<section class="section" id="ressources">
+    <h2 class="section-title">L'Auto-Examen : Un Geste Vital</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+        <div class="card">
+            <div style="background: var(--rose-light); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <span style="font-size: 2rem; color: var(--rose-dark); font-weight: bold;">1</span>
+            </div>
+            <h3>Observez</h3>
+            <p>Regardez vos seins devant un miroir, bras le long du corps puis levés. Recherchez des changements de forme, de taille ou de peau.</p>
+        </div>
+        
+        <div class="card">
+            <div style="background: var(--rose-light); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <span style="font-size: 2rem; color: var(--rose-dark); font-weight: bold;">2</span>
+            </div>
+            <h3>Palpez</h3>
+            <p>Avec la pulpe des doigts, palpez chaque sein par mouvements circulaires. Vérifiez toute la surface, y compris les aisselles.</p>
+        </div>
+        
+        <div class="card">
+            <div style="background: var(--rose-light); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <span style="font-size: 2rem; color: var(--rose-dark); font-weight: bold;">3</span>
+            </div>
+            <h3>Consultez</h3>
+            <p>Si vous détectez une anomalie (bosse, écoulement, changement), consultez immédiatement un professionnel de santé.</p>
+        </div>
+        
+        <div class="card">
+            <div style="background: var(--rose-light); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                <span style="font-size: 2rem; color: var(--rose-dark); font-weight: bold;">4</span>
+            </div>
+            <h3>Répétez</h3>
+            <p>Effectuez cet examen tous les mois, de préférence une semaine après les règles, pour connaître vos seins.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Signaux d'alerte -->
+<section class="section" style="background: var(--gris-clair); padding: 3rem 2rem; margin: 0; max-width: 100%;">
+    <h2 class="section-title">Signaux d'Alerte à Ne Pas Ignorer</h2>
+    <div style="max-width: 800px; margin: 0 auto;">
+        <div style="display: grid; gap: 1rem;">
+            <div style="display: flex; align-items: start; gap: 1rem; background: var(--blanc); padding: 1.5rem; border-radius: 10px; box-shadow: var(--ombre);">
+                <i class="fas fa-exclamation-triangle" style="color: var(--rose-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                <div>
+                    <strong>Bosse ou masse</strong>
+                    <p style="margin-top: 0.5rem;">Présence d'une grosseur inhabituelle dans le sein ou l'aisselle</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: start; gap: 1rem; background: var(--blanc); padding: 1.5rem; border-radius: 10px; box-shadow: var(--ombre);">
+                <i class="fas fa-exclamation-triangle" style="color: var(--rose-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                <div>
+                    <strong>Changement de peau</strong>
+                    <p style="margin-top: 0.5rem;">Rougeur, épaississement, aspect peau d'orange ou rétraction</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: start; gap: 1rem; background: var(--blanc); padding: 1.5rem; border-radius: 10px; box-shadow: var(--ombre);">
+                <i class="fas fa-exclamation-triangle" style="color: var(--rose-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                <div>
+                    <strong>Modifications du mamelon</strong>
+                    <p style="margin-top: 0.5rem;">Rétraction, écoulement anormal ou changement d'apparence</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: start; gap: 1rem; background: var(--blanc); padding: 1.5rem; border-radius: 10px; box-shadow: var(--ombre);">
+                <i class="fas fa-exclamation-triangle" style="color: var(--rose-primary); font-size: 1.5rem; margin-top: 0.2rem;"></i>
+                <div>
+                    <strong>Douleur persistante</strong>
+                    <p style="margin-top: 0.5rem;">Douleur inhabituelle qui ne disparaît pas avec le cycle menstruel</p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 2rem; padding: 2rem; background: linear-gradient(135deg, var(--rose-primary) 0%, var(--violet) 100%); border-radius: 15px; color: var(--blanc);">
+            <h3 style="margin-bottom: 1rem;"><i class="fas fa-heartbeat"></i> Agissez Rapidement</h3>
+            <p style="margin-bottom: 1.5rem;">La détection précoce sauve des vies. En cas de doute, consultez immédiatement.</p>
+            <a href="{% url 'contact' %}" class="btn btn-secondary">Trouver un centre de dépistage</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section">
+    <div style="background: linear-gradient(135deg, var(--rose-primary) 0%, var(--violet) 100%); padding: 3rem 2rem; border-radius: 20px; text-align: center; color: var(--blanc);">
+        <h2 style="font-size: 2rem; margin-bottom: 1rem;">Prêt à Prendre Votre Santé en Main ?</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.95;">Utilisez notre chatbot IA ou notre outil de prédiction pour obtenir des informations personnalisées</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'chatbot:chat' %}" class="btn" style="background: var(--blanc); color: var(--rose-primary);">
+                <i class="fas fa-robot"></i> Chatbot IA
+            </a>
+            <a href="{% url 'predictor:predict' %}" class="btn" style="background: rgba(255,255,255,0.2); color: var(--blanc); border: 2px solid var(--blanc);">
+                <i class="fas fa-brain"></i> Prédiction IA
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

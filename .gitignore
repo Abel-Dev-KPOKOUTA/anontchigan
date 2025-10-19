@@ -1,0 +1,160 @@
+# Django
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Database
+*.sqlite3
+*.db
+*.mdb
+
+# Environment variables
+.env
+*.env
+.env.local
+.env.production
+.env.development
+
+# Django media and static
+/media/
+/staticfiles/
+/static/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Machine Learning models
+*.joblib
+*.pkl
+*.h5
+*.hdf5
+*.model
+/models/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# Complexity
+output/*.html
+output/*/index.html
+
+# Sphinx
+docs/_build/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Python packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Celery
+celerybeat-schedule.*
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Temporary files
+*.tmp
+*.temp
+
+# Project specific (ajoutez vos dossiers spécifiques)
+/predictor/models/*.joblib
+/chatbot/data/cache/db.sqlite3
