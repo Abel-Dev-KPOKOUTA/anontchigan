@@ -14,9 +14,13 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import faiss
 
+from dotenv import load_dotenv
 # ============================================
 # CONFIGURATION ET LOGGING
 # ============================================
+
+load_dotenv()
+print("GROQ_API_KEY =", os.getenv("GROQ_API_KEY"))
 
 logging.basicConfig(
     level=logging.INFO,
