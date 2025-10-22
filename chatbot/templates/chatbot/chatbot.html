@@ -574,106 +574,160 @@
     // ============================================
     // FONCTION PRINCIPALE : ENVOYER UN MESSAGE (✅ CORRIGÉE POUR DJANGO)
     // ============================================
-    async function sendMessage() {
-        if (!chatInput || !sendButton || !typingIndicator) {
-            console.error('❌ Éléments DOM manquants');
-            return;
-        }
+    // async function sendMessage() {
+    //     if (!chatInput || !sendButton || !typingIndicator) {
+    //         console.error('❌ Éléments DOM manquants');
+    //         return;
+    //     }
 
-        const message = chatInput.value.trim();
+    //     const message = chatInput.value.trim();
         
-        // Vérification
-        if (!message) {
-            console.warn('⚠️ Message vide, envoi annulé');
-            return;
-        }
+    //     // Vérification
+    //     if (!message) {
+    //         console.warn('⚠️ Message vide, envoi annulé');
+    //         return;
+    //     }
 
-        console.log('📤 Tentative d\'envoi:', message);
+    //     console.log('📤 Tentative d\'envoi:', message);
 
-        // Désactiver l'input
-        chatInput.disabled = true;
-        sendButton.disabled = true;
+    //     // Désactiver l'input
+    //     chatInput.disabled = true;
+    //     sendButton.disabled = true;
 
-        // Ajouter le message de l'utilisateur
+    //     // Ajouter le message de l'utilisateur
+    //     addMessage(message, 'user');
+    //     chatInput.value = '';
+    //     chatInput.style.height = 'auto';
+
+    //     // Afficher l'indicateur de saisie
+    //     typingIndicator.classList.add('active');
+    //     scrollToBottom();
+
+    //     try {
+    //         console.log('🔗 Session ID:', currentSessionId);
+            
+    //         // Préparer les données
+    //         const requestData = {
+    //             question: message,
+    //             user_id: currentSessionId
+    //         };
+
+    //         console.log('📦 Données envoyées:', requestData);
+
+    //         // ✅ APPEL API DJANGO (URL CORRIGÉE)
+    //         const response = await fetch('/chatbot/api/chat/', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //             body: JSON.stringify(requestData)
+    //         });
+
+    //         console.log('📥 Réponse reçue, status:', response.status);
+
+    //         // Vérifier si la réponse est OK
+    //         if (!response.ok) {
+    //             throw new Error(`Erreur HTTP: ${response.status}`);
+    //         }
+            
+    //         const data = await response.json();
+    //         console.log('📊 Données:', {
+    //             method: data.method,
+    //             status: data.status,
+    //             answer_length: data.answer?.length
+    //         });
+
+    //         // Masquer l'indicateur
+    //         typingIndicator.classList.remove('active');
+
+    //         // ✅ AFFICHER LA RÉPONSE
+    //         if (data.answer) {
+    //             let sourceText = getSourceText(data.method);
+    //             let sourceClass = data.method || 'fallback';
+    //             addMessage(data.answer, 'bot', sourceText, sourceClass);
+    //         } else if (data.detail) {
+    //             addMessage(`Désolé, une erreur s'est produite: ${data.detail}`, 'bot');
+    //         } else {
+    //             addMessage("Désolé, je n'ai pas pu traiter votre demande. Veuillez réessayer.", 'bot');
+    //         }
+
+    //     } catch (error) {
+    //         console.error('❌ Erreur complète:', error);
+    //         typingIndicator.classList.remove('active');
+            
+    //         // Message d'erreur détaillé
+    //         let errorMessage = "Une erreur de connexion s'est produite. ";
+            
+    //         if (error.message.includes('Failed to fetch')) {
+    //             errorMessage += "L'API Django n'est pas accessible. Vérifiez que le serveur est lancé.";
+    //         } else if (error.message.includes('HTTP')) {
+    //             errorMessage += `Erreur HTTP: ${error.message}`;
+    //         } else {
+    //             errorMessage += error.message;
+    //         }
+            
+    //         addMessage(errorMessage, 'bot');
+    //     }
+
+    //     // Réactiver l'input
+    //     chatInput.disabled = false;
+    //     sendButton.disabled = false;
+    //     chatInput.focus();
+    // }
+
+
+
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
         addMessage(message, 'user');
         chatInput.value = '';
-        chatInput.style.height = 'auto';
-
-        // Afficher l'indicateur de saisie
+        chatInput.disabled = true;
+        sendButton.disabled = true;
         typingIndicator.classList.add('active');
         scrollToBottom();
 
         try {
-            console.log('🔗 Session ID:', currentSessionId);
-            
-            // Préparer les données
-            const requestData = {
-                question: message,
-                user_id: currentSessionId
-            };
+            // On interroge la page Streamlit
+            const response = await fetch(`https://anontchigan-api.streamlit.app/?api=true&question=${encodeURIComponent(message)}`);
+            console.log(response);
+            const html = await response.text();  // 👈 On récupère le contenu HTML complet
 
-            console.log('📦 Données envoyées:', requestData);
+            // On crée un DOM virtuel pour pouvoir interroger la page
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
 
-            // ✅ APPEL API DJANGO (URL CORRIGÉE)
-            const response = await fetch('/chatbot/api/chat/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            });
+            // On sélectionne la réponse avec ton sélecteur précis
+            const span = doc.querySelector('#root > div:nth-child(1) > div.withScreencast > div > div > div > section > div.stMainBlockContainer.block-container.st-emotion-cache-zy6yx3.e4man114 > div > div > div > div > div > div > div > div > div > div:nth-child(2) > div > div > span');
 
-            console.log('📥 Réponse reçue, status:', response.status);
+            let answer = span ? span.textContent.trim() : null;
 
-            // Vérifier si la réponse est OK
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log('📊 Données:', {
-                method: data.method,
-                status: data.status,
-                answer_length: data.answer?.length
-            });
-
-            // Masquer l'indicateur
             typingIndicator.classList.remove('active');
 
-            // ✅ AFFICHER LA RÉPONSE
-            if (data.answer) {
-                let sourceText = getSourceText(data.method);
-                let sourceClass = data.method || 'fallback';
-                addMessage(data.answer, 'bot', sourceText, sourceClass);
-            } else if (data.detail) {
-                addMessage(`Désolé, une erreur s'est produite: ${data.detail}`, 'bot');
+            if (answer) {
+                addMessage(answer, 'bot', 'Réponse Streamlit', 'streamlit');
             } else {
-                addMessage("Désolé, je n'ai pas pu traiter votre demande. Veuillez réessayer.", 'bot');
+                addMessage("❌ Impossible de récupérer la réponse depuis l’API Streamlit.", 'bot');
             }
 
         } catch (error) {
-            console.error('❌ Erreur complète:', error);
             typingIndicator.classList.remove('active');
-            
-            // Message d'erreur détaillé
-            let errorMessage = "Une erreur de connexion s'est produite. ";
-            
-            if (error.message.includes('Failed to fetch')) {
-                errorMessage += "L'API Django n'est pas accessible. Vérifiez que le serveur est lancé.";
-            } else if (error.message.includes('HTTP')) {
-                errorMessage += `Erreur HTTP: ${error.message}`;
-            } else {
-                errorMessage += error.message;
-            }
-            
-            addMessage(errorMessage, 'bot');
+            addMessage("Erreur de connexion à l’API Streamlit.", 'bot');
+            console.error('❌ Erreur:', error);
         }
 
-        // Réactiver l'input
         chatInput.disabled = false;
         sendButton.disabled = false;
         chatInput.focus();
     }
+
+
+
+
+
+
 
     // ============================================
     // ADAPTER getSourceText() AUX MÉTHODES

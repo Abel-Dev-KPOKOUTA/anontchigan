@@ -1,553 +1,253 @@
-from django.shortcuts import render
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 import json
+import requests
+from bs4 import BeautifulSoup
+import re
 import logging
-import os
-import random
-from typing import Dict, List, Optional
+from django.shortcuts import render
 
-# Importer les bibliothèques IA
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
-from dotenv import load_dotenv
-
-# ============================================
-# CONFIGURATION ET LOGGING (identique main.py)
-# ============================================
-
-load_dotenv()
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('anontchigan.log', encoding='utf-8')
-    ]
-)
-logger = logging.getLogger("ANONTCHIGAN")
-
-class Config:
-    """Configuration optimisée pour éviter les coupures"""
-    SIMILARITY_THRESHOLD = 0.75
-    MAX_HISTORY_LENGTH = 8
-    MAX_CONTEXT_LENGTH = 1000
-    MAX_ANSWER_LENGTH = 600
-    FAISS_RESULTS_COUNT = 3
-    MIN_ANSWER_LENGTH = 30
-
-# ============================================
-# SERVICE GROQ (100% IDENTIQUE À main.py)
-# ============================================
-
-class GroqService:
-    
-    def __init__(self):
-        self.client = None
-        self.available = False
-        self._initialize_groq()
-    
-    def _initialize_groq(self):
-        try:
-            from groq import Groq
-
-            api_key = os.getenv("GROQ_API_KEY")
-            if not api_key:
-                logger.warning("⚠️ Clé API Groq manquante — vérifie la variable d'environnement GROQ_API_KEY")
-                return
-
-            # ✅ Initialisation sans argument 'proxies'
-            self.client = Groq(api_key=api_key)
-
-            # ✅ Petit test de requête pour confirmer la disponibilité
-            test_response = self.client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[{"role": "user", "content": "test"}],
-                max_tokens=5
-            )
-
-            if test_response:
-                self.available = True
-                logger.info("✅ Service Groq initialisé et opérationnel")
-            else:
-                self.available = False
-                logger.warning("⚠️ Test Groq échoué, client non disponible")
-
-        except Exception as e:
-            self.available = False
-            logger.warning(f"❌ Service Groq non disponible : {str(e)}")
-
-    def generate_response(self, question: str, context: str, history: List[Dict]) -> str:
-        """Génère une réponse complète sans coupure"""
-        if not self.available:
-            raise RuntimeError("Service Groq non disponible")
-        
-        try:
-            # Préparer le contexte optimisé
-            context_short = self._prepare_context(context)
-            
-            # Préparer les messages
-            messages = self._prepare_messages(question, context_short, history)
-            
-            logger.info("🤖 Génération avec Groq...")
-            
-            # AUGMENTER SIGNIFICATIVEMENT les tokens pour éviter les coupures
-            response = self.client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=messages,
-                max_tokens=600,  # Augmenté pour éviter coupures
-                temperature=0.7,
-                top_p=0.9,
-            )
-            
-            answer = response.choices[0].message.content.strip()
-            answer = self._clean_response(answer)
-            
-            # Validation renforcée
-            if not self._is_valid_answer(answer):
-                raise ValueError("Réponse trop courte")
-                
-            # Vérification et correction des coupures
-            answer = self._ensure_complete_response(answer)
-            
-            logger.info(f"✓ Réponse générée ({len(answer)} caractères)")
-            return answer
-            
-        except Exception as e:
-            logger.error(f"Erreur Groq: {str(e)}")
-            raise
-    
-    def _prepare_context(self, context: str) -> str:
-        """Prépare un contexte concis"""
-        lines = context.split('\n')[:5]  # Réduit pour focus
-        context_short = '\n'.join(lines)
-        if len(context_short) > Config.MAX_CONTEXT_LENGTH:
-            context_short = context_short[:Config.MAX_CONTEXT_LENGTH-3] + "..."
-        return context_short
-    
-    def _prepare_messages(self, question: str, context: str, history: List[Dict]) -> List[Dict]:
-        """Prépare les messages avec instructions claires contre les coupures"""
-        
-        system_prompt = f"""Tu es ANONTCHIGAN, assistante IA professionnelle spécialisée dans la sensibilisation au cancer du sein au Bénin.
-
-CONTEXTE À UTILISER :
-{context}
-
-RÈGLES CRITIQUES :
-1. FOURNIR DES RÉPONSES COMPLÈTES - ne JAMAIS couper une phrase en milieu de mot
-2. Si tu donnes un conseil de prévention, aller deux fois à la ligne AVANT de le donner
-3. Tes réponses doivent se terminer naturellement par un point final
-
-STYLE :
-- Professionnel, clair, empathique
-- Réponses directes sans formules introductives
-- CONCIS mais COMPLET
-- Humour humain léger 1 fois sur 3 réponses
-- Emojis à utiliser fréquemment : 💗 🌸 😊 🇧🇯
-
-STRUCTURE DES RÉPONSES :
-1. Réponse principale basée sur le contexte
-2- N'invente PAS d'informations
-3- Si le contexte ne couvre pas la question, recommande de consulter un professionnel de santé au Bénin
-4- ENSGMM se définit comme l'Ecole Nationale Supérieure de Génie Mathématique et Modélisation 
-5- Utilise des connecteurs logiques pour fluidifier et produire des réponses naturelles et cohérentes
-
-DIRECTIVES ANTI-CONPUTURE :
-- Vérifie que ta réponse est complète avant de terminer
-- Ne coupe PAS en milieu de phrase ou de mot
-- Utilise "Atassa!" ou "Atassaaaaa!" en debut de phrase en cas dh'humour et d'étonnemnt extrême
-- Termine par un point final approprié
-- Si tu mentionnes des noms (créateurs, etc.), assure-toi qu'ils sont COMPLETS
-
-Conseils de prévention : seulement si pertinents et si demandés."""
-
-        messages = [{"role": "system", "content": system_prompt}]
-        
-        # Historique récent
-        for msg in history[-4:]:
-            messages.append(msg)
-        
-        # Question actuelle avec instruction explicite
-        messages.append({
-            "role": "user", 
-            "content": f"QUESTION: {question}\n\nIMPORTANT : Réponds de façon COMPLÈTE sans couper ta réponse. Termine par un point final. Si conseil de prévention, va à la ligne avant."
-        })
-        
-        return messages
-    
-    def _clean_response(self, answer: str) -> str:
-        """Nettoie la réponse en gardant la personnalité"""
-        
-        # Supprimer les introductions verbeuses
-        unwanted_intros = [
-            'bonjour', 'salut', 'coucou', 'hello', 'akwè', 'yo', 'bonsoir', 'hi',
-            'excellente question', 'je suis ravi', 'permettez-moi', 'tout d abord',
-            'premièrement', 'pour commencer', 'en tant qu', 'je suis anontchigan'
-        ]
-        
-        answer_lower = answer.lower()
-        for phrase in unwanted_intros:
-            if answer_lower.startswith(phrase):
-                sentences = answer.split('.')
-                if len(sentences) > 1:
-                    answer = '.'.join(sentences[1:]).strip()
-                    if answer:
-                        answer = answer[0].upper() + answer[1:]
-                break
-        
-        return answer.strip()
-    
-    def _is_valid_answer(self, answer: str) -> bool:
-        """Valide que la réponse est acceptable"""
-        return (len(answer) >= Config.MIN_ANSWER_LENGTH and 
-                not answer.lower().startswith(('je ne sais pas', 'désolé', 'sorry')))
-    
-    def _ensure_complete_response(self, answer: str) -> str:
-        """Garantit que la réponse est complète et non coupée"""
-        if not answer:
-            return answer
-            
-        # Détecter les signes de coupure
-        cut_indicators = [
-            answer.endswith('...'),
-            answer.endswith(','),
-            answer.endswith(';'),
-            answer.endswith(' '),
-            any(word in answer.lower() for word in ['http', 'www.', '.com']),  # URLs coupées
-            '...' in answer[-10:]  # Points de suspension vers la fin
-        ]
-        
-        if any(cut_indicators):
-            logger.warning("⚠️  Détection possible de réponse coupée")
-            
-            # Trouver la dernière phrase complète
-            last_period = answer.rfind('.')
-            last_exclamation = answer.rfind('!')
-            last_question = answer.rfind('?')
-            
-            sentence_end = max(last_period, last_exclamation, last_question)
-            
-            if sentence_end > 0 and sentence_end >= len(answer) - 5:
-                # Garder jusqu'à la dernière phrase complète
-                answer = answer[:sentence_end + 1]
-            else:
-                # Si pas de ponctuation claire, nettoyer la fin
-                answer = answer.rstrip(' ,;...')
-                if not answer.endswith(('.', '!', '?')):
-                    answer += '.'
-        
-        # Formater les conseils de prévention avec saut de ligne
-        prevention_phrases = [
-            'conseil de prévention',
-            'pour prévenir',
-            'je recommande',
-            'il est important de',
-            'n oubliez pas de'
-        ]
-        
-        # Vérifier si un conseil de prévention est présent
-        has_prevention_advice = any(phrase in answer.lower() for phrase in prevention_phrases)
-        
-        if has_prevention_advice:
-            # Essayer d'insérer un saut de ligne avant le conseil
-            lines = answer.split('. ')
-            if len(lines) > 1:
-                # Trouver la ligne qui contient le conseil
-                for i, line in enumerate(lines[1:], 1):
-                    if any(phrase in line.lower() for phrase in prevention_phrases):
-                        # Insérer un saut de ligne avant cette ligne
-                        lines[i] = '\n' + lines[i]
-                        answer = '. '.join(lines)
-                        break
-        
-        return answer
-
-# ============================================
-# SERVICES RAG ET CONVERSATION (100% IDENTIQUE)
-# ============================================
-
-class RAGService:
-    """Service RAG avec recherche améliorée"""
-    
-    def __init__(self, data_file: str = 'cancer_sein.json'):
-        self.questions_data = []
-        self.embedding_model = None
-        self.index = None
-        self.embeddings = None
-        self._load_data(data_file)
-        self._initialize_embeddings()
-    
-    def _load_data(self, data_file: str):
-        try:
-            with open(data_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            for item in data:
-                self.questions_data.append({
-                    'question_originale': item['question'],
-                    'question_normalisee': item['question'].lower().strip(),
-                    'answer': item['answer']
-                })
-            
-            logger.info(f"✓ {len(self.questions_data)} questions chargées")
-            
-        except Exception as e:
-            logger.error(f"Erreur chargement données: {str(e)}")
-            raise
-    
-    def _initialize_embeddings(self):
-        try:
-            self.embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-            
-            all_texts = [
-                f"Q: {item['question_originale']} R: {item['answer']}"
-                for item in self.questions_data
-            ]
-            
-            self.embeddings = self.embedding_model.encode(all_texts, show_progress_bar=False)
-            self.embeddings = np.array(self.embeddings).astype('float32')
-            
-            dimension = self.embeddings.shape[1]
-            self.index = faiss.IndexFlatL2(dimension)
-            self.index.add(self.embeddings)
-            
-            logger.info(f"✓ Index FAISS créé ({len(self.embeddings)} vecteurs)")
-            
-        except Exception as e:
-            logger.error(f"Erreur initialisation embeddings: {str(e)}")
-            raise
-    
-    def search(self, query: str, k: int = Config.FAISS_RESULTS_COUNT) -> List[Dict]:
-        """Recherche optimisée dans FAISS"""
-        try:
-            query_embedding = self.embedding_model.encode([query])
-            query_embedding = np.array(query_embedding).astype('float32')
-            
-            distances, indices = self.index.search(query_embedding, k)
-            
-            results = []
-            for i, idx in enumerate(indices[0]):
-                if idx < len(self.questions_data):
-                    similarity = 1 / (1 + distances[0][i])
-                    results.append({
-                        'question': self.questions_data[idx]['question_originale'],
-                        'answer': self.questions_data[idx]['answer'],
-                        'similarity': similarity,
-                        'distance': distances[0][i]
-                    })
-            
-            return results
-            
-        except Exception as e:
-            logger.error(f"Erreur recherche FAISS: {str(e)}")
-            return []
-
-class ConversationManager:
-    """Gestionnaire de conversations"""
-    
-    def __init__(self):
-        self.conversations: Dict[str, List[Dict]] = {}
-    
-    def get_history(self, user_id: str) -> List[Dict]:
-        return self.conversations.get(user_id, [])
-    
-    def add_message(self, user_id: str, role: str, content: str):
-        if user_id not in self.conversations:
-            self.conversations[user_id] = []
-        
-        self.conversations[user_id].append({"role": role, "content": content})
-        
-        if len(self.conversations[user_id]) > Config.MAX_HISTORY_LENGTH * 2:
-            self.conversations[user_id] = self.conversations[user_id][-Config.MAX_HISTORY_LENGTH * 2:]
-
-# ============================================
-# INITIALISATION GLOBALE (Une seule fois)
-# ============================================
-
-groq_service = None
-rag_service = None
-conversation_manager = None
-
-def initialize_services():
-    """Initialise tous les services une seule fois au démarrage"""
-    global groq_service, rag_service, conversation_manager
-    
-    if groq_service is None:
-        logger.info("🚀 Démarrage d'ANONTCHIGAN anti-coupure...")
-        groq_service = GroqService()
-    
-    if rag_service is None:
-        # Chemin vers cancer_sein.json dans chatbot/data/
-        data_path = os.path.join(os.path.dirname(__file__), 'data', 'cancer_sein.json')
-        rag_service = RAGService(data_path)
-    
-    if conversation_manager is None:
-        conversation_manager = ConversationManager()
-        
-        logger.info("\n" + "="*50)
-        logger.info("✓ ANONTCHIGAN ANTI-COUPURE - Prêt!")
-        logger.info("  - Max tokens: 600 (augmenté)")
-        logger.info("  - Détection coupures: Activée")
-        logger.info("  - Conseils formatés: Avec sauts de ligne")
-        logger.info(f"  - Génération: {'Groq ⚡' if groq_service.available else 'Fallback'}")
-        logger.info("="*50 + "\n")
-
-# ============================================
-# VUES DJANGO (Logique 100% identique à /chat de FastAPI)
-# ============================================
+logger = logging.getLogger(__name__)
 
 def chatbot_view(request):
-    """Affiche l'interface du chatbot"""
-    initialize_services()
-    return render(request, 'chatbot/chatbot.html')
-
+    return render(request,'chatbot/chatbot.html')
 
 @csrf_exempt
-@require_http_methods(["POST"])
 def chat_api(request):
-    """
-    Endpoint /chat exactement identique à FastAPI
-    Logique 100% copiée depuis main.py
-    """
-    initialize_services()
+    """API pour le chatbot qui appelle Streamlit et extrait le JSON"""
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Méthode POST requise'}, status=405)
     
     try:
-        # Parser la requête
+        # Récupérer les données
         data = json.loads(request.body)
         question = data.get('question', '').strip()
-        user_id = data.get('user_id', 'default')
+        user_id = data.get('user_id', 'anonymous')
         
         if not question:
             return JsonResponse({
+                'status': 'error',
                 'answer': 'Veuillez poser une question.',
-                'status': 'error'
-            }, status=400)
+                'method': 'error'
+            })
         
-        logger.info(f"📥 Question: {question}")
+        logger.info(f"📤 Question reçue: {question}")
         
-        # Récupérer l'historique
-        history = conversation_manager.get_history(user_id)
-        
-        # Gestion des salutations (IDENTIQUE à main.py)
-        salutations = ["cc", "bonjour", "salut", "coucou", "hello", "akwe", "yo", "bonsoir", "hi"]
-        question_lower = question.lower().strip()
-        
-        if any(salut == question_lower for salut in salutations):
-            responses = [
-                "Je suis ANONTCHIGAN, assistante pour la sensibilisation au cancer du sein. Comment puis-je vous aider ? 💗",
-                "Bonjour ! Je suis ANONTCHIGAN. Que souhaitez-vous savoir sur le cancer du sein ? 🌸",
-                "ANONTCHIGAN à votre service. Posez-moi vos questions sur la prévention du cancer du sein. 😊"
-            ]
-            answer = random.choice(responses)
-            
-            conversation_manager.add_message(user_id, "user", question)
-            conversation_manager.add_message(user_id, "assistant", answer)
-            
+        # Gestion des salutations simples
+        salutations = ['bonjour', 'salut', 'hello', 'hi', 'bonsoir', 'coucou', 'cc']
+        if question.lower().strip() in salutations:
             return JsonResponse({
-                'answer': answer,
                 'status': 'success',
+                'answer': '👋 Bonjour ! Je suis ANONTCHIGAN. Comment puis-je vous aider concernant le cancer du sein ?',
                 'method': 'salutation'
             })
         
-        # Recherche FAISS (IDENTIQUE à main.py)
-        logger.info("🔍 Recherche FAISS...")
-        faiss_results = rag_service.search(question)
+        # Construire l'URL Streamlit avec paramètres API
+        streamlit_url = 'https://anontchigan-api.streamlit.app/'
+        params = {
+            'api': 'true',
+            'question': question,
+            'user_id': user_id
+        }
         
-        if not faiss_results:
-            answer = "Les informations disponibles ne couvrent pas ce point spécifique. Je vous recommande de consulter un professionnel de santé au Bénin pour des conseils adaptés. 💗"
-            conversation_manager.add_message(user_id, "user", question)
-            conversation_manager.add_message(user_id, "assistant", answer)
-            
-            return JsonResponse({
-                'answer': answer,
-                'status': 'info',
-                'method': 'no_result'
-            })
+        logger.info(f"🔗 Appel Streamlit: {streamlit_url}")
         
-        best_result = faiss_results[0]
-        similarity = best_result['similarity']
+        # Faire la requête HTTP avec timeout généreux
+        response = requests.get(
+            streamlit_url,
+            params=params,
+            timeout=60,  # 60 secondes pour laisser le temps à Streamlit
+            headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'text/html,application/json'
+            }
+        )
         
-        logger.info(f"📊 Meilleure similarité: {similarity:.3f}")
+        if response.status_code != 200:
+            raise Exception(f"Streamlit retourne le code {response.status_code}")
         
-        # Décision : Réponse directe vs Génération (IDENTIQUE à main.py)
-        if similarity >= Config.SIMILARITY_THRESHOLD:
-            logger.info(f"✅ Haute similarité → Réponse directe")
-            answer = best_result['answer']
-            
-            # S'assurer que les réponses directes ne sont pas coupées non plus
-            if len(answer) > Config.MAX_ANSWER_LENGTH:
-                answer = answer[:Config.MAX_ANSWER_LENGTH-3] + "..."
-            
-            conversation_manager.add_message(user_id, "user", question)
-            conversation_manager.add_message(user_id, "assistant", answer)
-            
-            return JsonResponse({
-                'answer': answer,
-                'status': 'success',
-                'method': 'json_direct',
-                'score': float(similarity),
-                'matched_question': best_result['question']
-            })
-        else:
-            logger.info(f"🤖 Similarité modérée → Génération Groq")
-            
-            # Préparer le contexte (IDENTIQUE à main.py)
-            context_parts = []
-            for i, result in enumerate(faiss_results[:3], 1):
-                answer_truncated = result['answer']
-                if len(answer_truncated) > 200:  # Réduit pour laisser plus de place à la génération
-                    answer_truncated = answer_truncated[:197] + "..."
-                context_parts.append(f"{i}. Q: {result['question']}\n   R: {answer_truncated}")
-            
-            context = "\n\n".join(context_parts)
-            
-            # Génération avec Groq (IDENTIQUE à main.py)
+        logger.info(f"✅ Réponse Streamlit reçue ({len(response.text)} caractères)")
+        
+        # STRATÉGIE 1: Chercher le JSON directement dans le HTML
+        # Streamlit utilise st.json() qui crée un élément <pre> avec le JSON
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Méthode 1: Chercher dans les balises <pre> (st.json génère ça)
+        json_data = None
+        pre_elements = soup.find_all('pre')
+        
+        for pre in pre_elements:
+            text = pre.get_text().strip()
             try:
-                if groq_service.available:
-                    generated_answer = groq_service.generate_response(question, context, history)
-                else:
-                    generated_answer = "Je vous recommande de consulter un professionnel de santé pour cette question spécifique. La prévention précoce est essentielle. 💗"
-            except Exception as e:
-                logger.warning(f"Génération échouée: {str(e)}")
-                generated_answer = "Pour des informations précises sur ce sujet, veuillez consulter un médecin ou un centre de santé spécialisé au Bénin. 🌸"
+                # Essayer de parser comme JSON
+                parsed = json.loads(text)
+                if isinstance(parsed, dict) and 'answer' in parsed:
+                    json_data = parsed
+                    logger.info("✅ JSON trouvé dans <pre>")
+                    break
+            except json.JSONDecodeError:
+                continue
+        
+        # Méthode 2: Chercher dans les balises <code>
+        if not json_data:
+            code_elements = soup.find_all('code')
+            for code in code_elements:
+                text = code.get_text().strip()
+                try:
+                    parsed = json.loads(text)
+                    if isinstance(parsed, dict) and 'answer' in parsed:
+                        json_data = parsed
+                        logger.info("✅ JSON trouvé dans <code>")
+                        break
+                except json.JSONDecodeError:
+                    continue
+        
+        # Méthode 3: Regex pour extraire n'importe quel JSON avec "answer"
+        if not json_data:
+            logger.warning("⚠️ JSON non trouvé dans <pre>/<code>, utilisation de regex...")
+            # Chercher un pattern JSON avec "answer"
+            json_pattern = r'\{[^{}]*"answer"\s*:\s*"[^"]*"[^{}]*\}'
+            matches = re.findall(json_pattern, response.text)
             
-            conversation_manager.add_message(user_id, "user", question)
-            conversation_manager.add_message(user_id, "assistant", generated_answer)
+            for match in matches:
+                try:
+                    parsed = json.loads(match)
+                    if 'answer' in parsed:
+                        json_data = parsed
+                        logger.info("✅ JSON trouvé par regex")
+                        break
+                except json.JSONDecodeError:
+                    continue
+        
+        # Méthode 4: Regex plus large (multi-lignes)
+        if not json_data:
+            # Pattern pour capturer des JSON multi-lignes
+            json_pattern_multi = r'\{[^{}]*"success"\s*:\s*(?:true|false)[^{}]*"answer"\s*:\s*"[^"]*"[^{}]*\}'
+            matches = re.findall(json_pattern_multi, response.text, re.DOTALL)
+            
+            for match in matches:
+                try:
+                    # Nettoyer les sauts de ligne et espaces
+                    cleaned = re.sub(r'\s+', ' ', match)
+                    parsed = json.loads(cleaned)
+                    if 'answer' in parsed:
+                        json_data = parsed
+                        logger.info("✅ JSON trouvé par regex multi-lignes")
+                        break
+                except json.JSONDecodeError:
+                    continue
+        
+        # Méthode 5: Chercher directement le texte JSON dans tout le HTML
+        if not json_data:
+            logger.warning("⚠️ Dernière tentative: extraction brutale du JSON...")
+            # Trouver tout ce qui ressemble à un objet JSON
+            all_text = response.text
+            
+            # Chercher tous les { } et essayer de les parser
+            start_positions = [i for i, char in enumerate(all_text) if char == '{']
+            
+            for start in start_positions:
+                for end in range(start + 50, min(start + 2000, len(all_text))):
+                    if all_text[end] == '}':
+                        try:
+                            candidate = all_text[start:end+1]
+                            parsed = json.loads(candidate)
+                            if isinstance(parsed, dict) and 'answer' in parsed:
+                                json_data = parsed
+                                logger.info(f"✅ JSON trouvé par extraction brutale")
+                                break
+                        except:
+                            continue
+                if json_data:
+                    break
+        
+        # Si on a trouvé le JSON
+        if json_data:
+            answer = json_data.get('answer', '')
+            method = json_data.get('method', 'groq_generated')
+            
+            logger.info(f"✅ Réponse extraite: {answer[:100]}...")
             
             return JsonResponse({
-                'answer': generated_answer,
                 'status': 'success',
-                'method': 'groq_generated',
-                'score': float(similarity),
-                'context_used': len(faiss_results[:3])
+                'answer': answer,
+                'method': method,
+                'user_id': user_id
             })
-            
-    except Exception as e:
-        logger.error(f"❌ Erreur: {str(e)}")
-        error_message = "Désolé, une erreur s'est produite. Veuillez réessayer."
         
-        conversation_manager.add_message(user_id, "user", question)
-        conversation_manager.add_message(user_id, "assistant", error_message)
+        # Si aucune méthode n'a fonctionné
+        logger.error("❌ Impossible d'extraire le JSON")
+        
+        # Debug: sauvegarder le HTML pour inspection
+        try:
+            with open('/tmp/streamlit_debug.html', 'w', encoding='utf-8') as f:
+                f.write(response.text)
+            logger.info("💾 HTML sauvegardé dans /tmp/streamlit_debug.html pour debug")
+        except:
+            pass
+        
+        # Chercher au moins du texte lisible comme fallback
+        body = soup.find('body')
+        if body:
+            text = body.get_text()
+            # Chercher les lignes avec du contenu
+            lines = [line.strip() for line in text.split('\n') if len(line.strip()) > 30]
+            if lines:
+                # Prendre la ligne la plus pertinente
+                for line in lines:
+                    if any(word in line.lower() for word in ['cancer', 'sein', 'prévention', 'symptôme']):
+                        logger.info(f"⚠️ Fallback: texte extrait")
+                        return JsonResponse({
+                            'status': 'success',
+                            'answer': line,
+                            'method': 'text_fallback'
+                        })
         
         return JsonResponse({
-            'answer': error_message,
             'status': 'error',
+            'answer': "Désolé, je n'ai pas pu récupérer la réponse. Veuillez réessayer dans quelques instants.",
             'method': 'error'
-        }, status=500)
+        })
+    
+    except requests.Timeout:
+        logger.error("⏱️ Timeout Streamlit")
+        return JsonResponse({
+            'status': 'error',
+            'answer': "Le serveur met trop de temps à répondre. Veuillez patienter et réessayer.",
+            'method': 'error'
+        })
+    
+    except requests.RequestException as e:
+        logger.error(f"🌐 Erreur réseau: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'answer': "Impossible de contacter le serveur Streamlit. Vérifiez votre connexion.",
+            'method': 'error'
+        })
+    
+    except Exception as e:
+        logger.error(f"❌ Erreur inattendue: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        return JsonResponse({
+            'status': 'error',
+            'answer': f"Une erreur s'est produite: {str(e)}",
+            'method': 'error'
+        })
 
 
 @csrf_exempt
-@require_http_methods(["GET"])
 def health_check(request):
-    """Endpoint de santé (comme /health de FastAPI)"""
-    initialize_services()
-    
+    """Vérifier que l'API fonctionne"""
     return JsonResponse({
-        "status": "healthy", 
-        "version": "2.2.0",
-        "groq_available": groq_service.available if groq_service else False,
-        "optimizations": ["anti_coupure", "conseils_formates", "reponses_completes"]
+        'status': 'online',
+        'service': 'ANONTCHIGAN Django Chatbot API',
+        'streamlit_url': 'https://anontchigan-api.streamlit.app/',
+        'endpoints': {
+            'chat': '/chatbot/api/chat/',
+            'health': '/chatbot/api/health/'
+        }
     })
