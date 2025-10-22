@@ -540,7 +540,7 @@
     function generateSessionId() {
         return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
-
+    
     // Initialiser le session ID au chargement
     if (!currentSessionId) {
         currentSessionId = generateSessionId();
@@ -570,112 +570,6 @@
             sendMessage();
         }
     }
-
-    // ============================================
-    // FONCTION PRINCIPALE : ENVOYER UN MESSAGE (✅ CORRIGÉE POUR DJANGO)
-    // ============================================
-    // async function sendMessage() {
-    //     if (!chatInput || !sendButton || !typingIndicator) {
-    //         console.error('❌ Éléments DOM manquants');
-    //         return;
-    //     }
-
-    //     const message = chatInput.value.trim();
-        
-    //     // Vérification
-    //     if (!message) {
-    //         console.warn('⚠️ Message vide, envoi annulé');
-    //         return;
-    //     }
-
-    //     console.log('📤 Tentative d\'envoi:', message);
-
-    //     // Désactiver l'input
-    //     chatInput.disabled = true;
-    //     sendButton.disabled = true;
-
-    //     // Ajouter le message de l'utilisateur
-    //     addMessage(message, 'user');
-    //     chatInput.value = '';
-    //     chatInput.style.height = 'auto';
-
-    //     // Afficher l'indicateur de saisie
-    //     typingIndicator.classList.add('active');
-    //     scrollToBottom();
-
-    //     try {
-    //         console.log('🔗 Session ID:', currentSessionId);
-            
-    //         // Préparer les données
-    //         const requestData = {
-    //             question: message,
-    //             user_id: currentSessionId
-    //         };
-
-    //         console.log('📦 Données envoyées:', requestData);
-
-    //         // ✅ APPEL API DJANGO (URL CORRIGÉE)
-    //         const response = await fetch('/chatbot/api/chat/', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify(requestData)
-    //         });
-
-    //         console.log('📥 Réponse reçue, status:', response.status);
-
-    //         // Vérifier si la réponse est OK
-    //         if (!response.ok) {
-    //             throw new Error(`Erreur HTTP: ${response.status}`);
-    //         }
-            
-    //         const data = await response.json();
-    //         console.log('📊 Données:', {
-    //             method: data.method,
-    //             status: data.status,
-    //             answer_length: data.answer?.length
-    //         });
-
-    //         // Masquer l'indicateur
-    //         typingIndicator.classList.remove('active');
-
-    //         // ✅ AFFICHER LA RÉPONSE
-    //         if (data.answer) {
-    //             let sourceText = getSourceText(data.method);
-    //             let sourceClass = data.method || 'fallback';
-    //             addMessage(data.answer, 'bot', sourceText, sourceClass);
-    //         } else if (data.detail) {
-    //             addMessage(`Désolé, une erreur s'est produite: ${data.detail}`, 'bot');
-    //         } else {
-    //             addMessage("Désolé, je n'ai pas pu traiter votre demande. Veuillez réessayer.", 'bot');
-    //         }
-
-    //     } catch (error) {
-    //         console.error('❌ Erreur complète:', error);
-    //         typingIndicator.classList.remove('active');
-            
-    //         // Message d'erreur détaillé
-    //         let errorMessage = "Une erreur de connexion s'est produite. ";
-            
-    //         if (error.message.includes('Failed to fetch')) {
-    //             errorMessage += "L'API Django n'est pas accessible. Vérifiez que le serveur est lancé.";
-    //         } else if (error.message.includes('HTTP')) {
-    //             errorMessage += `Erreur HTTP: ${error.message}`;
-    //         } else {
-    //             errorMessage += error.message;
-    //         }
-            
-    //         addMessage(errorMessage, 'bot');
-    //     }
-
-    //     // Réactiver l'input
-    //     chatInput.disabled = false;
-    //     sendButton.disabled = false;
-    //     chatInput.focus();
-    // }
-
-
 
 
     async function sendMessage() {
@@ -722,11 +616,6 @@
         sendButton.disabled = false;
         chatInput.focus();
     }
-
-
-
-
-
 
 
     // ============================================
