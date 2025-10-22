@@ -50,36 +50,36 @@ def predict_image(request):
         print(f"📤 Image reçue: {uploaded_file.name}, Taille: {uploaded_file.size/1024:.1f}KB")
         
         # Utiliser le prédicteur (EXACTEMENT comme dans le code original)
-        try:
-            result = CancerPredictor.predict_image(uploaded_file)
-            print("✅ Prédiction réussie!")
+        #try:
+        result = CancerPredictor.predict_image(uploaded_file)
+        print("✅ Prédiction réussie!")
+        
+        return JsonResponse({
+            'label': result['label'],
+            'prob_malign': result['prob_malin'],
+            'confidence': result['confidence'] / 100,  # Convertir en 0-1 pour le frontend
+            'predicted_class': result['predicted_class'],
+            'message': 'Analyse d\'image complétée avec succès',
+            'model_used': True
+        })
             
-            return JsonResponse({
-                'label': result['label'],
-                'prob_malign': result['prob_malin'],
-                'confidence': result['confidence'] / 100,  # Convertir en 0-1 pour le frontend
-                'predicted_class': result['predicted_class'],
-                'message': 'Analyse d\'image complétée avec succès',
-                'model_used': True
-            })
+        # except Exception as model_error:
+        #     print(f"❌ Erreur lors de la prédiction: {model_error}")
+        #     import traceback
+        #     traceback.print_exc()
             
-        except Exception as model_error:
-            print(f"❌ Erreur lors de la prédiction: {model_error}")
-            import traceback
-            traceback.print_exc()
+        #     # Fallback en cas d'erreur
+        #     import random
+        #     prob_malign = random.uniform(0.1, 0.9)
+        #     label = "Malin" if prob_malign >= 0.5 else "Bénin"
             
-            # Fallback en cas d'erreur
-            import random
-            prob_malign = random.uniform(0.1, 0.9)
-            label = "Malin" if prob_malign >= 0.5 else "Bénin"
-            
-            return JsonResponse({
-                'label': label,
-                'prob_malign': prob_malign,
-                'confidence': abs(prob_malign - 0.5) * 2,
-                'message': 'Analyse complétée (mode simulation)',
-                'model_used': False
-            })
+        #     return JsonResponse({
+        #         'label': label,
+        #         'prob_malign': prob_malign,
+        #         'confidence': abs(prob_malign - 0.5) * 2,
+        #         'message': 'Analyse complétée (mode simulation)',
+        #         'model_used': False
+        #     })
         
     except Exception as e:
         print(f"❌ Erreur générale: {e}")
