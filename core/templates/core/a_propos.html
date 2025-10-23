@@ -1,9 +1,137 @@
 {% extends 'core/base.html' %}
-
+{% load static %}
 {% block title %}À Propos - ANONTCHIGAN | Notre Mission{% endblock %}
+
+
 
 {% block content %}
 <!-- Hero Section -->
+<style>
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .team-member {
+        background: var(--blanc);
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: var(--ombre);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .team-member:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    .member-avatar {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, var(--rose-primary), var(--violet));
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        border: 4px solid var(--blanc);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .member-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+
+    .member-avatar i {
+        font-size: 3rem;
+        color: var(--blanc);
+        position: relative;
+        z-index: 0;
+    }
+
+    .member-name {
+        color: var(--rose-dark);
+        margin-bottom: 0.3rem;
+        font-size: 1.1rem;
+    }
+
+    .member-role {
+        color: var(--violet);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .member-school {
+        font-size: 0.9rem;
+        color: var(--gris-fonce);
+    }
+
+
+
+    .member-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 20%; /* 👈 Ajuste le centrage vertical */
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+
+
+
+
+
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .team-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .member-avatar {
+            width: 100px;
+            height: 100px;
+        }
+
+        .member-avatar i {
+            font-size: 2.5rem;
+        }
+
+        .member-name {
+            font-size: 1rem;
+        }
+
+        .member-role {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .team-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .team-member {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
 <section class="hero">
     <div class="hero-content">
         <h1><i class="fas fa-heart"></i> À Propos d'ANONTCHIGAN</h1>
@@ -92,50 +220,68 @@
         <p style="font-size: 1.1rem; margin-bottom: 3rem; color: var(--gris-fonce);">
             ANONTCHIGAN est développé par une équipe d'étudiants passionnés du Club IA de l'ENSGMM
         </p>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
-            <div style="background: var(--blanc); padding: 2rem; border-radius: 15px; box-shadow: var(--ombre);">
-                <div style="width: 120px; height: 120px; background: linear-gradient(135deg, var(--rose-primary), var(--violet)); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-user-graduate" style="font-size: 3rem; color: var(--blanc);"></i>
-                </div>
-                <h3 style="color: var(--rose-dark); margin-bottom: 0.3rem;">Judicaël Karol DOBOEVI</h3>
-                <p style="color: var(--violet); font-weight: 600; margin-bottom: 0.5rem;">Développeur IA</p>
-                <p style="font-size: 0.9rem; color: var(--gris-fonce);">ENSGMM - Club IA</p>
-            </div>
+    
+
+        <!-- HTML simplifié -->
+        <div class="team-grid">
             
-            <div style="background: var(--blanc); padding: 2rem; border-radius: 15px; box-shadow: var(--ombre);">
-                <div style="width: 120px; height: 120px; background: linear-gradient(135deg, var(--rose-primary), var(--violet)); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-user-graduate" style="font-size: 3rem; color: var(--blanc);"></i>
+            <!-- Membre 1 -->
+            <div class="team-member">
+                <div class="member-avatar">
+                    <img src="{% static 'images/team/judicael.jpg' %}" alt="Judicaël Karol DOBOEVI">
+                    <i class="fas fa-user-graduate"></i>
                 </div>
-                <h3 style="color: var(--rose-dark); margin-bottom: 0.3rem;">Hornel Ursus GBAGUIDI</h3>
-                <p style="color: var(--violet); font-weight: 600; margin-bottom: 0.5rem;">Développeur IA</p>
-                <p style="font-size: 0.9rem; color: var(--gris-fonce);">ENSGMM - Club IA</p>
+                <h3 class="member-name">Judicaël Karol DOBOEVI</h3>
+                <p class="member-role">Etudiant Ingénieur en Mathématiques et Modélisation</p>
+                <p class="member-school">ENSGMM - Club IA</p>
             </div>
-            
-            <div style="background: var(--blanc); padding: 2rem; border-radius: 15px; box-shadow: var(--ombre);">
-                <div style="width: 120px; height: 120px; background: linear-gradient(135deg, var(--rose-primary), var(--violet)); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-user-graduate" style="font-size: 3rem; color: var(--blanc);"></i>
+
+            <!-- Membre 2 -->
+            <div class="team-member">
+                <div class="member-avatar">
+                    <img src="{% static 'images/team/hornel.jpg' %}" alt="Hornel Ursus GBAGUIDI">
+                    <i class="fas fa-user-graduate"></i>
                 </div>
-                <h3 style="color: var(--rose-dark); margin-bottom: 0.3rem;">Abel Kocou KPOKOUTA</h3>
-                <p style="color: var(--violet); font-weight: 600; margin-bottom: 0.5rem;">Développeur IA</p>
-                <p style="font-size: 0.9rem; color: var(--gris-fonce);">ENSGMM - Club IA</p>
+                <h3 class="member-name">Hornel Ursus GBAGUIDI</h3>
+                <p class="member-role">Développeur IA</p>
+                <p class="member-school">ENSGMM - Club IA</p>
             </div>
-            
-            <div style="background: var(--blanc); padding: 2rem; border-radius: 15px; box-shadow: var(--ombre);">
-                <div style="width: 120px; height: 120px; background: linear-gradient(135deg, var(--rose-primary), var(--violet)); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-user-graduate" style="font-size: 3rem; color: var(--blanc);"></i>
+
+            <!-- Membre 3 -->
+            <div class="team-member">
+                <div class="member-avatar">
+                    <img src="{% static 'images/team/abel.jpg' %}" alt="Abel Kocou KPOKOUTA">
+                    <i class="fas fa-user-graduate"></i>
                 </div>
-                <h3 style="color: var(--rose-dark); margin-bottom: 0.3rem;">Josaphat ADJELE</h3>
-                <p style="color: var(--violet); font-weight: 600; margin-bottom: 0.5rem;">Développeur IA</p>
-                <p style="font-size: 0.9rem; color: var(--gris-fonce);">ENSGMM - Club IA</p>
+                <h3 class="member-name">Abel Kocou KPOKOUTA</h3>
+                <p class="member-role">Etudiant Ingénieur  Développeur IA / Web FullStack</p>
+                <p class="member-school">ENSGMM - Club IA</p>
             </div>
+
+            <!-- Membre 4 -->
+            <div class="team-member">
+                <div class="member-avatar">
+                    <img src="{% static 'images/team/josaphat.jpg' %}" alt="Josaphat ADJELE">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h3 class="member-name">Josaphat ADJELE</h3>
+                <p class="member-role">Développeur IA</p>
+                <p class="member-school">ENSGMM - Club IA</p>
+            </div>
+
         </div>
-        
+
+
+
+
+
+
+
         <div style="background: linear-gradient(135deg, var(--rose-light) 0%, #E1BEE7 100%); padding: 2rem; border-radius: 15px; max-width: 700px; margin: 0 auto;">
             <h3 style="color: var(--rose-dark); margin-bottom: 1rem;"><i class="fas fa-graduation-cap"></i> ENSGMM - Abomey</h3>
             <p style="color: var(--gris-fonce); line-height: 1.7;">
                 <strong>École Nationale Supérieure de Génie Mathématique et Modélisation</strong><br>
-                Formation d'excellence en mathématiques appliquées, modélisation et intelligence artificielle
+                Formation d'excellence en mathématiques appliquées et modélisation
             </p>
         </div>
     </div>
