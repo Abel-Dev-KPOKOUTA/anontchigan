@@ -2,12 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
 import json
-import os
-import numpy as np
-from .ml_utils import CancerPredictor  # Import du prédicteur
+from .ml_utils import CancerPredictor
 
 # Page de prédiction
 def prediction_page(request):
@@ -17,155 +13,19 @@ def prediction_page(request):
     return render(request, 'predictor/prediction.html')
 
 
-# API pour prédiction d'image
+# API pour prédiction avec image (désactivée)
 @require_http_methods(["POST"])
 @csrf_exempt
 def predict_image(request):
     """
     API endpoint pour analyser une image médicale
-    Utilise EXACTEMENT le même code que le fichier original
+    DÉSACTIVÉ pour le déploiement (TensorFlow trop lourd)
     """
-    try:
-        # Vérifier qu'un fichier a été uploadé
-        if 'image' not in request.FILES:
-            return JsonResponse({
-                'error': 'Aucune image fournie'
-            }, status=400)
-
-        uploaded_file = request.FILES['image']
-
-        # Vérifier le type de fichier
-        allowed_types = ['image/jpeg', 'image/png', 'image/jpg']
-        if uploaded_file.content_type not in allowed_types:
-            return JsonResponse({
-                'error': 'Format d\'image non supporté. Utilisez JPG ou PNG.'
-            }, status=400)
-
-        # Vérifier la taille (max 10MB)
-        if uploaded_file.size > 10 * 1024 * 1024:
-            return JsonResponse({
-                'error': 'Image trop volumineuse (max 10MB)'
-            }, status=400)
-
-        print(f"📤 Image reçue: {uploaded_file.name}, Taille: {uploaded_file.size/1024:.1f}KB")
-
-        # Utiliser le prédicteur (EXACTEMENT comme dans le code original)
-        #try:
-        result = CancerPredictor.predict_image(uploaded_file)
-        print("✅ Prédiction réussie!")
-
-        result = CancerPredictor.predict_image(uploaded_file)
-        print("✅ Prédiction réussie!")
-
-        return JsonResponse({
-            'label': result['label'],
-            'prob_malign': result['prob_malin'],
-            'confidence': result['confidence'] / 100,  # Convertir en 0-1 pour le frontend
-            'predicted_class': result['predicted_class'],
-            'message': 'Analyse d\'image complétée avec succès',
-            'model_used': True
-        })
-
-
-
-
-        # except Exception as model_error:
-        #     print(f"❌ Erreur lors de la prédiction: {model_error}")
-        #     import traceback
-        #     traceback.print_exc()
-
-        #     # Fallback en cas d'erreur
-        #     import random
-        #     prob_malign = random.uniform(0.1, 0.9)
-        #     label = "Malin" if prob_malign >= 0.5 else "Bénin"
-
-        #     return JsonResponse({
-        #         'label': label,
-        #         'prob_malign': prob_malign,
-        #         'confidence': abs(prob_malign - 0.5) * 2,
-        #         'message': 'Analyse complétée (mode simulation)',
-        #         'model_used': False
-        #     })
-
-    except Exception as e:
-        print(f"❌ Erreur générale: {e}")
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({
-            'error': f'Une erreur s\'est produite: {str(e)}'
-        }, status=500)
-    pass
-    # """
-    # API endpoint pour analyser une image médicale
-    # Utilise EXACTEMENT le même code que le fichier original
-    # """
-    # try:
-    #     # Vérifier qu'un fichier a été uploadé
-    #     if 'image' not in request.FILES:
-    #         return JsonResponse({
-    #             'error': 'Aucune image fournie'
-    #         }, status=400)
-        
-    #     uploaded_file = request.FILES['image']
-        
-    #     # Vérifier le type de fichier
-    #     allowed_types = ['image/jpeg', 'image/png', 'image/jpg']
-    #     if uploaded_file.content_type not in allowed_types:
-    #         return JsonResponse({
-    #             'error': 'Format d\'image non supporté. Utilisez JPG ou PNG.'
-    #         }, status=400)
-        
-    #     # Vérifier la taille (max 10MB)
-    #     if uploaded_file.size > 10 * 1024 * 1024:
-    #         return JsonResponse({
-    #             'error': 'Image trop volumineuse (max 10MB)'
-    #         }, status=400)
-        
-    #     print(f"📤 Image reçue: {uploaded_file.name}, Taille: {uploaded_file.size/1024:.1f}KB")
-        
-    #     # Utiliser le prédicteur (EXACTEMENT comme dans le code original)
-        
-    #     result = CancerPredictor.predict_image(uploaded_file)
-    #     print("✅ Prédiction réussie!")
-        
-    #     return JsonResponse({
-    #         'label': result['label'],
-    #         'prob_malign': result['prob_malin'],
-    #         'confidence': result['confidence'] / 100,  # Convertir en 0-1 pour le frontend
-    #         'predicted_class': result['predicted_class'],
-    #         'message': 'Analyse d\'image complétée avec succès',
-    #         'model_used': True
-    #     })
-            
-    #     # except Exception as model_error:
-    #     #     print(f"❌ Erreur lors de la prédiction: {model_error}")
-    #     #     import traceback
-    #     #     traceback.print_exc()
-            
-    #     #     # Fallback en cas d'erreur
-    #     #     import random
-    #     #     prob_malign = random.uniform(0.1, 0.9)
-    #     #     label = "Malin" if prob_malign >= 0.5 else "Bénin"
-            
-    #     #     return JsonResponse({
-    #     #         'label': label,
-    #     #         'prob_malign': prob_malign,
-    #     #         'confidence': abs(prob_malign - 0.5) * 2,
-    #     #         'message': 'Analyse complétée (mode simulation)',
-    #     #         'model_used': False
-    #     #     })
-        
-    # except Exception as e:
-    #     print(f"❌ Erreur générale: {e}")
-    #     import traceback
-    #     traceback.print_exc()
-    #     return JsonResponse({
-    #         'error': f'Une erreur s\'est produite: {str(e)}'
-    #     }, status=500)
-
-
-
-
+    return JsonResponse({
+        'error': 'La prédiction par image n\'est pas disponible sur cette version déployée.',
+        'message': 'Veuillez utiliser l\'analyse par données cliniques.',
+        'feature_disabled': True
+    }, status=503)
 
 
 # API pour prédiction avec données tabulaires
@@ -178,7 +38,7 @@ def predict_data(request):
     try:
         # Récupérer les données JSON
         data = json.loads(request.body)
-        print("📥 Données reçues:", data)  # Debug
+        print("📥 Données reçues:", data)
 
         # Valider les champs requis
         required_fields = [
@@ -232,12 +92,12 @@ def predict_data(request):
             'fractal_dimension': fractal_dimension
         }
 
-        print("🔍 Features préparées:", features)  # Debug
+        print("🔍 Features préparées:", features)
 
         # Utiliser le modèle de prédiction
         try:
             result = CancerPredictor.predict(features)
-            print("🎯 Résultat prédiction:", result)  # Debug
+            print("🎯 Résultat prédiction:", result)
 
             if result:
                 return JsonResponse({
@@ -295,6 +155,7 @@ def predict_data(request):
             'error': f'Une erreur s\'est produite lors du calcul: {str(e)}'
         }, status=500)
 
+
 # Vue pour vérifier le statut du modèle
 @csrf_exempt
 def model_status(request):
@@ -302,11 +163,12 @@ def model_status(request):
     Retourne le statut du modèle (pour debug)
     """
     try:
-        from .ml_utils import CancerPredictor
-        model_loaded = CancerPredictor._model is not None
+        model_loaded = CancerPredictor._tabular_model is not None
         return JsonResponse({
             'model_loaded': model_loaded,
-            'status': 'ready' if model_loaded else 'not_loaded'
+            'status': 'ready' if model_loaded else 'not_loaded',
+            'image_model_available': False,
+            'tabular_model_available': True
         })
     except Exception as e:
         return JsonResponse({
