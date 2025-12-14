@@ -15,13 +15,14 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'clé-par-défaut-pour-développement-seule
 #DEBUG = os.getenv('DEBUG', 'True') == 'True'
 DEBUG = False
 
-ALLOWED_HOSTS = ['abel123.pythonanywhere.com']
-
-#DEBUG = os.getenv('DEBUG', 'True') == 'False'
-DEBUG = True
-
 #ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    'abel123.pythonanywhere.com',
+    '.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
+
 
 
 # Application definition
@@ -97,10 +98,17 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files
-STATIC_URL = 'static/'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static"
+]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 
 # ----------------------- SECTION SEND EMAIL -------------------#
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
