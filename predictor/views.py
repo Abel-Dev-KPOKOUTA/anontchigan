@@ -21,7 +21,6 @@ def prediction_page(request):
 @require_http_methods(["POST"])
 @csrf_exempt
 def predict_image(request):
-<<<<<<< HEAD
     """
     API endpoint pour analyser une image médicale
     Utilise EXACTEMENT le même code que le fichier original
@@ -164,7 +163,7 @@ def predict_image(request):
     #     return JsonResponse({
     #         'error': f'Une erreur s\'est produite: {str(e)}'
     #     }, status=500)
->>>>>>> 078d4e1c361a46a4fd3e52c56265507b6cf5b460
+
 
 
 
