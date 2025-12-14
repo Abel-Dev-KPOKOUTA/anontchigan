@@ -1,7 +1,8 @@
 # ====================================
-# REQUIREMENTS.TXT - PROPRE POUR RENDER
+# REQUIREMENTS.TXT - SANS SCIPY
 # ====================================
-# Seulement ce qui est nécessaire pour ton app Django
+# scipy nécessite gfortran, donc on l'enlève
+# scikit-learn fonctionne sans scipy pour la plupart des modèles
 
 # ============ DJANGO ============
 Django==5.2.4
@@ -13,7 +14,8 @@ gunicorn==23.0.0
 scikit-learn==1.5.2
 joblib==1.4.2
 numpy==1.26.4
-scipy==1.13.1
+# scipy==1.13.1  ← ENLEVÉ (nécessite gfortran)
+threadpoolctl==3.5.0
 
 # ============ FICHIERS STATIQUES ============
 whitenoise==6.11.0
@@ -27,25 +29,20 @@ requests==2.31.0
 beautifulsoup4==4.12.3
 lxml==4.9.4
 
-# ============ BASE DE DONNÉES ============
-# Décommente si tu utilises PostgreSQL sur Render
-# psycopg2-binary==2.9.10
-# dj-database-url==3.0.1
-
 # ============ UTILITAIRES ============
 certifi==2024.7.4
 charset-normalizer==3.3.2
 urllib3==2.2.3
 pytz==2024.1
 sqlparse==0.5.0
+asgiref==3.8.1
 
 # ====================================
 # NOTES
 # ====================================
-# Taille estimée : ~150 MB
-# Temps de build : 2-3 minutes
+# Taille : ~120 MB (sans scipy)
+# Build : < 2 minutes
 # 
-# Versions compatibles testées :
-# - numpy 1.26.4 (stable)
-# - scipy 1.13.1 (compatible numpy 1.26.x)
-# - scikit-learn 1.5.2 (compatible numpy 1.26.x)
+# Si ton modèle NÉCESSITE absolument scipy :
+# - Utilise un wheel précompilé (voir solution alternative)
+# - Ou passe à un plan payant Render avec plus de ressources
