@@ -1,7 +1,8 @@
 # ====================================
-# REQUIREMENTS.TXT - Python 3.12
+# REQUIREMENTS.TXT - SANS SCIPY
 # ====================================
-# Compatible avec Python 3.12.3 (ton environnement local)
+# scipy nécessite gfortran, donc on l'enlève
+# scikit-learn fonctionne sans scipy pour la plupart des modèles
 
 # ============ DJANGO ============
 Django==5.2.4
@@ -10,22 +11,23 @@ django-cors-headers==4.5.0
 gunicorn==23.0.0
 
 # ============ MACHINE LEARNING ============
-# Versions compatibles Python 3.12 avec wheels précompilés
 scikit-learn==1.5.2
 joblib==1.4.2
 numpy==1.26.4
+# scipy==1.13.1  ← ENLEVÉ (nécessite gfortran)
 threadpoolctl==3.5.0
 
 # ============ FICHIERS STATIQUES ============
 whitenoise==6.11.0
 
 # ============ CONFIGURATION ============
+python-decouple==3.8
 python-dotenv==1.1.1
 
 # ============ HTTP & PARSING ============
 requests==2.31.0
 beautifulsoup4==4.12.3
-lxml==5.3.0
+lxml==4.9.4
 
 # ============ UTILITAIRES ============
 certifi==2024.7.4
@@ -38,9 +40,9 @@ asgiref==3.8.1
 # ====================================
 # NOTES
 # ====================================
-# Avec Python 3.12, tout a des wheels précompilés !
-# - scipy 1.13.1 : wheel disponible pour Python 3.12
-# - lxml 5.3.0 : wheel disponible pour Python 3.12
-# - Pas de compilation nécessaire
+# Taille : ~120 MB (sans scipy)
+# Build : < 2 minutes
 # 
-# Build estimé : 2-3 minutes
+# Si ton modèle NÉCESSITE absolument scipy :
+# - Utilise un wheel précompilé (voir solution alternative)
+# - Ou passe à un plan payant Render avec plus de ressources
