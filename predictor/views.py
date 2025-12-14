@@ -94,7 +94,6 @@ def predict_image(request):
         return JsonResponse({
             'error': f'Une erreur s\'est produite: {str(e)}'
         }, status=500)
-=======
     pass
     # """
     # API endpoint pour analyser une image médicale
